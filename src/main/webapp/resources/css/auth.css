@@ -1,0 +1,11 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(50% 123.47% at 50% 50%, rgba(0, 255, 148, 0.37) 0%, rgba(114, 0, 89, 0.38) 100%),
+    linear-gradient(121.28deg, #669600 0%, rgba(255, 0, 0, 0.47) 100%),
+    linear-gradient(360deg, rgba(0, 41, 255, 0.39) 0%, rgba(206, 227, 177, 0.34) 100%),
+    radial-gradient(100% 164.72% at 100% 100%, #c5bad6 0%, #bfecce 100%),
+    radial-gradient(100% 148.07% at 0% 0%, #d8d7b8 0%, #cad6c2 100%);
+    background-blend-mode: screen, color-dodge, overlay, difference, normal;
+}

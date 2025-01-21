@@ -1,0 +1,78 @@
+/* Styles pour le header principal */
+.header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--sidebar-width);
+    height: var(--header-height);
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0,0,0,.03);
+    z-index: 1020;
+    padding: 0 1.5rem;
+}
+
+/* Conteneur principal de la zone de recherche et du titre */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--sidebar-width);
+    background-color: #f8f9fc;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+/* Style du titre de la page */
+.page-title {
+    font-size: 1.75rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* Container de recherche */
+.search-container {
+    max-width: 500px;
+    width: 100%;
+}
+
+/* Input de recherche */
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(78,115,223,0.15);
+}
+
+/* Bouton de recherche */
+.search-button {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #4e73df;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+/* Conteneur du contenu principal */
+.content-wrapper {
+    margin-left: var(--sidebar-width);
+    margin-top: calc(var(--header-height) + 70px); /* hauteur du header + marge */
+    padding: 1.5rem;
+    min-height: calc(100vh - var(--header-height));
+    background-color: #f8f9fc;
+}

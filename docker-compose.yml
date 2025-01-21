@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  boutique-mysql:
+    container_name: boutique-mysql
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: boutique
+      MYSQL_USER: boutique_user
+      MYSQL_PASSWORD: boutique_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./volume-data/mysql_boutique_data:/var/lib/mysql
+    networks:
+      - boutique-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  boutique-network:
+    driver: bridge
