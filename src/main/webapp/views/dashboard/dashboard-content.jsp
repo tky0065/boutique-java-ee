@@ -1,112 +1,127 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="container-fluid  align-items-center justify-content-between w-100 py-4  ">
+<div class="container-fluid py-4">
     <!-- En-tête du Dashboard -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Tableau de Bord</h1>
-        <div>
-            <button class="btn btn-primary" onclick="refreshDashboard()">
-                <i class="bi bi-arrow-clockwise"></i> Actualiser
-            </button>
-        </div>
+        <button class="btn btn-primary" onclick="refreshDashboard()">
+            <i class="bi bi-arrow-clockwise"></i> Actualiser
+        </button>
     </div>
 
-    <!-- Cartes des statistiques -->
-    <div class="row gap-2 mb-4">
+    <!-- Cartes des statistiques (sur une même ligne) -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
         <!-- Ventes du jour -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-start stats-card border-primary border-4 shadow h-100">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <div class="text-uppercase mb-1 text-muted">Ventes du jour</div>
-
-                            <div class="h4 mb-0" id="ventesJourTotal">
-                                <fmt:formatNumber value="${ventesJourTotal}" pattern="#,##0"/> FCFA
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-cart fs-1 text-primary"></i>
-                        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-start border-primary border-4 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="icon-box bg-light-primary rounded-circle mx-auto mb-3">
+                        <i class="bi bi-cart fs-2 text-primary"></i>
+                    </div>
+                    <div class="text-uppercase small text-muted">Ventes du jour</div>
+                    <div class="display-6 fw-bold text-primary" id="ventesJourTotal">
+                        <fmt:formatNumber value="${ventesJourTotal}" pattern="#,##0"/> FCFA
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Livraisons du jour -->
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card border-start border-success border-4 shadow h-100">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <div class="text-uppercase mb-1 text-muted">Livraisons du jour</div>
-                            <div class="h4 mb-0" id="livraisonsJourTotal">
-                                <fmt:formatNumber value="${livraisonsJourTotal}" pattern="#,##0"/> FCFA
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-truck fs-1 text-success"></i>
-                        </div>
+                <div class="card-body text-center">
+                    <div class="icon-box bg-light-success rounded-circle mx-auto mb-3">
+                        <i class="bi bi-truck fs-2 text-success"></i>
+                    </div>
+                    <div class="text-uppercase small text-muted">Livraisons du jour</div>
+                    <div class="display-6 fw-bold text-success" id="livraisonsJourTotal">
+                        <fmt:formatNumber value="${livraisonsJourTotal}" pattern="#,##0"/> FCFA
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Produits en alerte -->
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card border-start border-warning border-4 shadow h-100">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <div class="text-uppercase mb-1 text-muted">Produits en alerte</div>
-                            <div class="h4 mb-0" id="nombreProduitsAlerte">
-                                ${produitsAlerte.size()}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
-                        </div>
+                <div class="card-body text-center">
+                    <div class="icon-box bg-light-warning rounded-circle mx-auto mb-3">
+                        <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
+                    </div>
+                    <div class="text-uppercase small text-muted">Produits en alerte</div>
+                    <div class="display-6 fw-bold text-warning" id="nombreProduitsAlerte">
+                        ${produitsAlerte.size()}
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Total des produits -->
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card border-start border-info border-4 shadow h-100">
+                <div class="card-body text-center">
+                    <div class="icon-box bg-light-info rounded-circle mx-auto mb-3">
+                        <i class="bi bi-box fs-2 text-info"></i>
+                    </div>
+                    <div class="text-uppercase small text-muted">Total des produits</div>
+                    <div class="display-6 fw-bold text-info">
+                        ${totalProduits}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Dernières opérations -->
+    <div class="row gy-4">
+        <!-- Dernières ventes -->
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Dernières ventes</h5>
+                </div>
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <div class="text-uppercase mb-1 text-muted">Total des produits</div>
-                            <div class="h4 mb-0">
-                                ${totalProduits}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-box fs-1 text-info"></i>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                            <tr>
+                                <th>Heure</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <c:forEach items="${ventesJour}" var="vente">
+                                <tr>
+                                    <td>${vente.dateVenteFormatted}</td>
+                                    <td>${vente.nomClient}</td>
+                                    <td>
+                                        <fmt:formatNumber value="${vente.montantTotal}" pattern="#,##0"/> FCFA
+                                    </td>
+                                    <td>
+                                        <a href="<c:url value='/ventes/${vente.id}'/>"
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Graphiques et Tableaux -->
-    <div class="row">
-        <!-- Graphique des ventes -->
-        <div class="col-xl-8">
-            <div class="card shadow mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Évolution des ventes</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="ventesChart"></canvas>
-                </div>
-            </div>
-        </div>
+    <!-- Graphiques et Produits en alerte -->
+    <div class="row gy-4">
 
         <!-- Produits en alerte -->
-        <div class="col-xl-4">
+        <div class="col-12">
             <div class="card shadow mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Produits en alerte de stock</h5>
@@ -126,9 +141,7 @@
                             <c:forEach items="${produitsAlerte}" var="produit">
                                 <tr>
                                     <td>${produit.nom}</td>
-                                    <td>
-                                        <span class="badge bg-danger">${produit.quantiteStock}</span>
-                                    </td>
+                                    <td><span class="badge bg-danger">${produit.quantiteStock}</span></td>
                                     <td>${produit.seuilAlerte}</td>
                                     <td>
                                         <a href="<c:url value='/livraisons/nouvelle?produitId=${produit.id}'/>"
@@ -144,53 +157,24 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Dernières opérations -->
-    <div class="row">
-        <!-- Dernières ventes -->
-        <div class="col-xl-6">
+        <!-- Graphique des ventes -->
+        <div class="col-12">
             <div class="card shadow mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Dernières ventes</h5>
+                    <h5 class="mb-0">Évolution des ventes</h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                            <tr>
-                                <th>Heure</th>
-                                <th>Client</th>
-                                <th>Montant</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:forEach items="${ventesJour}" var="vente">
-                                <tr>
-                                    <td>
-                                        <fmt:formatDate value="${vente.dateVente}" pattern="HH:mm"/>
-                                    </td>
-                                    <td>${vente.client}</td>
-                                    <td>
-                                        <fmt:formatNumber value="${vente.montantTotal}" pattern="#,##0"/> FCFA
-                                    </td>
-                                    <td>
-                                        <a href="<c:url value='/ventes/${vente.id}'/>"
-                                           class="btn btn-sm btn-info">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
-                    </div>
+                    <canvas id="ventesChart"></canvas>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
+
+
+
+
 
 <!-- Scripts pour les graphiques -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
