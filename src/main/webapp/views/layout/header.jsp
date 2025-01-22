@@ -4,7 +4,7 @@
 <header class="bg-light py-2 px-3 header shadow-sm fixed-top">
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <!-- Barre de recherche -->
-        <form action="<c:url value='/'/>" method="GET" class="w-50">
+        <form action="<c:url value='/produits/liste'/>" method="GET" class="w-50">
             <div class="input-group">
                 <input type="text" class="form-control rounded-start" placeholder="Rechercher..." aria-label="Rechercher" name="search" required>
                 <button class="btn btn-primary rounded-end" type="submit" aria-label="Rechercher">
