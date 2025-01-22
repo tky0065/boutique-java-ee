@@ -1,13 +1,36 @@
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Boutique - Produits</title>
 
-<div class="container-fluid">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="<c:url value='/resources/css/dashboard.css'/>" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <c:import url="../layout/sidebar.jsp"/>
+
+    <div class="main-content">
+        <!-- Header -->
+        <c:import url="../layout/header.jsp"/>
+
+<div class="container-fluid mt-3">
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Rapports et Statistiques</h1>
-        <div class="btn-group">
-            <button type="button" class="btn btn-primary" onclick="genererRapport()">
+        <div class="btn-group ">
+            <button type="button" class="btn btn-primary " onclick="genererRapport()">
                 <i class="bi bi-file-earmark-pdf"></i> Générer Rapport
             </button>
             <button type="button" class="btn btn-success" onclick="exporterExcel()">
@@ -22,7 +45,7 @@
             <form id="filterForm" class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Période</label>
-                    <select class="form-select" id="periodeSelect" onchange="updatePeriode()">
+                    <select class="form-select" id="periodeSelect" name="periode" onchange="updatePeriode()">
                         <option value="jour">Aujourd'hui</option>
                         <option value="semaine">Cette semaine</option>
                         <option value="mois">Ce mois</option>
@@ -173,7 +196,26 @@
     document.addEventListener('DOMContentLoaded', function() {
         initCharts();
         setupEventListeners();
+        updatePeriode()
+        chargerDonnees();
+
+
     });
+    function updatePeriode() {
+        const periodeSelect = document.getElementById('periodeSelect');
+        const personnalise = periodeSelect.value === 'personnalise';
+        document.querySelectorAll('.periode-personnalisee').forEach(el => {
+            el.classList.toggle('d-none', !personnalise);
+        });
+
+        if (!personnalise) {
+            const today = new Date();
+            document.getElementById('dateDebut').value = today.toISOString().split('T')[0];
+            document.getElementById('dateFin').value = today.toISOString().split('T')[0];
+        }
+    }
+
+
 
     function initCharts() {
         // Graphique des ventes
@@ -204,7 +246,6 @@
             }
         });
 
-        // Graphique des top produits
         const topProduitsCtx = document.getElementById('topProduitsChart').getContext('2d');
         topProduitsChart = new Chart(topProduitsCtx, {
             type: 'doughnut',
@@ -213,15 +254,32 @@
                 datasets: [{
                     data: [],
                     backgroundColor: [
-                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
-                    ]
+                        '#4e73df',
+                        '#1cc88a',
+                        '#36b9cc',
+                        '#f6c23e',
+                        '#e74a3b'
+                    ],
+                    hoverOffset: 4
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return `${label}: ${value} unités`;
+                            }
+                        }
                     }
                 }
             }
@@ -239,51 +297,117 @@
         document.getElementById('filterForm').addEventListener('submit', function(e) {
             e.preventDefault();
             chargerDonnees();
+
         });
     }
 
-    function chargerDonnees() {
-        // Récupérer les paramètres de filtre
-        const params = new URLSearchParams();
-        params.append('periode', document.getElementById('periodeSelect').value);
-
-        if (document.getElementById('periodeSelect').value === 'personnalise') {
-            params.append('dateDebut', document.getElementById('dateDebut').value);
-            params.append('dateFin', document.getElementById('dateFin').value);
+    function updateCharts(data) {
+        // Mise à jour du graphique des ventes
+        if (data.ventes) {
+            ventesChart.data.labels = data.ventes.labels;
+            ventesChart.data.datasets[0].data = data.ventes.donnees;
+            ventesChart.update();
         }
 
-        // Charger les données
-        fetch('/rapports/data?' + params.toString())
-            .then(response => response.json())
-            .then(data => {
-                updateCharts(data);
-            });
+        // Mise à jour du graphique des top produits
+        if (data.topProduits) {
+            console.log('Top Produits data:', data.topProduits); // Pour déboguer
+            topProduitsChart.data.labels = data.topProduits.labels;
+            topProduitsChart.data.datasets[0].data = data.topProduits.donnees;
+            topProduitsChart.update();
+        }
     }
 
-    function updateCharts(data) {
-        // Mettre à jour le graphique des ventes
-        ventesChart.data.labels = data.ventes.labels;
-        ventesChart.data.datasets[0].data = data.ventes.donnees;
-        ventesChart.update();
+    function initCharts() {
+        // Graphique des ventes
+        const ventesCtx = document.getElementById('ventesChart').getContext('2d');
+        ventesChart = new Chart(ventesCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Montant des ventes',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' FCFA';
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
-        // Mettre à jour le graphique des top produits
-        topProduitsChart.data.labels = data.topProduits.labels;
-        topProduitsChart.data.datasets[0].data = data.topProduits.donnees;
-        topProduitsChart.update();
+
+        // Graphique des top produits
+        const topProduitsCtx = document.getElementById('topProduitsChart').getContext('2d');
+        topProduitsChart = new Chart(topProduitsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#4e73df',
+                        '#1cc88a',
+                        '#36b9cc',
+                        '#f6c23e',
+                        '#e74a3b'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                return `${label}: ${value} unités vendues`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
+
+    // Ajoutez une fonction pour charger les données initiales
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+        setupEventListeners();
+        // Charger les données initiales
+        chargerDonnees();
+    });
+
 
     function genererRapport() {
         const params = new URLSearchParams(new FormData(document.getElementById('filterForm')));
-        window.location.href = '/rapports/pdf?' + params.toString();
+        window.location.href = '<c:url value="/rapports/pdf"/>' + '?' + params.toString();
     }
 
     function exporterExcel() {
         const params = new URLSearchParams(new FormData(document.getElementById('filterForm')));
-        window.location.href = '/rapports/excel?' + params.toString();
+        window.location.href = '<c:url value="/rapports/excel"/>' + '?' + params.toString();
     }
 
     function updateVentesChart(periode) {
-        fetch('/rapports/ventes?periode=' + periode)
+        fetch('<c:url value="/rapports/ventes"/>' + '?periode=' + periode)
             .then(response => response.json())
             .then(data => {
                 ventesChart.data.labels = data.labels;
@@ -291,4 +415,42 @@
                 ventesChart.update();
             });
     }
+
+    function chargerDonnees() {
+        const params = new URLSearchParams();
+        const periodeSelect = document.getElementById('periodeSelect');
+        params.append('periode', periodeSelect.value);
+
+        if (periodeSelect.value === 'personnalise') {
+            params.append('dateDebut', document.getElementById('dateDebut').value);
+            params.append('dateFin', document.getElementById('dateFin').value);
+        }
+
+        fetch('<c:url value="/rapports/data"/>' + '?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                // Mettre à jour les statistiques
+                updateStats(data.stats);
+                // Mettre à jour les graphiques
+                updateCharts(data);
+            });
+    }
+
+    function updateStats(stats) {
+        document.querySelector('[data-stat="chiffreAffaires"]').textContent =
+            new Intl.NumberFormat('fr-FR').format(stats.chiffreAffaires) + ' FCFA';
+        document.querySelector('[data-stat="nombreVentes"]').textContent =
+            stats.nombreVentes;
+        document.querySelector('[data-stat="valeurStock"]').textContent =
+            new Intl.NumberFormat('fr-FR').format(stats.valeurStock) + ' FCFA';
+        document.querySelector('[data-stat="benefice"]').textContent =
+            new Intl.NumberFormat('fr-FR').format(stats.benefice) + ' FCFA';
+    }
 </script>
+<!-- Footer -->
+<div class=" "><c:import url="../layout/footer.jsp"/></div>
+</div>
+</div>
+</body>
+</html>
+

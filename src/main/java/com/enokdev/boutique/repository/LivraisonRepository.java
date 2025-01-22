@@ -4,6 +4,7 @@ import com.enokdev.boutique.model.Livraison;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -16,10 +17,12 @@ public class LivraisonRepository {
 
     @PersistenceContext
     private EntityManager em;
-
+    @Transactional
     public Livraison save(Livraison livraison) {
         if (livraison.getId() == null) {
             em.persist(livraison);
+            em.flush();
+
             return livraison;
         }
         return em.merge(livraison);

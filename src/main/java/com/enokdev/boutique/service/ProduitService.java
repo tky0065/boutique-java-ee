@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -83,5 +84,19 @@ public class ProduitService {
         return
                 produitRepository.findById(produitId)
                 .map(produitMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal calculateValeurStock() {
+        List<Produit> produits = produitRepository.findAll();
+        return produits.stream()
+                .map(produit -> {
+                    if (produit.getPrixUnitaire() == null || produit.getQuantiteStock() == null) {
+                        return BigDecimal.ZERO;
+                    }
+                    return produit.getPrixUnitaire()
+                            .multiply(BigDecimal.valueOf(produit.getQuantiteStock()));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

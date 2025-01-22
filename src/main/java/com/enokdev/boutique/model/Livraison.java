@@ -30,6 +30,8 @@ public class Livraison {
     @Column(name = "montant_total", nullable = false)
     private BigDecimal montantTotal;
 
+
+
     @ManyToOne
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;

@@ -39,7 +39,7 @@ public class VenteService {
     private final VenteRepository venteRepository;
     private final ProduitService produitService;
     private final UtilisateurRepository utilisateurRepository;
-    Logger log = LogManager.getLogger();
+   private final  Logger log = LogManager.getLogger();
     private final ProduitMapper produitMapper;
 
     public List<VenteResponse> getAllVentes() {
@@ -183,7 +183,11 @@ public class VenteService {
                 .map(this::toVenteResponse)
                 .collect(Collectors.toList());
     }
-
+    public BigDecimal getTotalVentesParPeriode(LocalDateTime debut, LocalDateTime fin) {
+        BigDecimal total = venteRepository.getTotalVentesParPeriode(debut, fin);
+        log.info("Total des ventes pour la période {} - {} : {}", debut, fin, total);
+        return total != null ? total : BigDecimal.ZERO;
+    }
     private VenteResponse toVenteResponse(Vente vente) {
         VenteResponse response = new VenteResponse();
         response.setId(vente.getId());
@@ -212,7 +216,5 @@ public class VenteService {
         return venteRepository.findVentesQuotidiennes(debut, fin);
     }
 
-    public Object getTotalVentesParPeriode(LocalDateTime debutJour, LocalDateTime finJour) {
-        return venteRepository.getTotalVentesParPeriode(debutJour, finJour);
-    }
+
 }

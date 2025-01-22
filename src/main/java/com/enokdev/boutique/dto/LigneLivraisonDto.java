@@ -19,6 +19,8 @@ public class LigneLivraisonDto {
     @NotNull(message = "Le produit est obligatoire")
     private Long produitId;
 
+    private ProduitDto produit;
+
     @NotNull(message = "La quantité est obligatoire")
     @Min(value = 1, message = "La quantité doit être d'au moins 1")
     private Integer quantite;

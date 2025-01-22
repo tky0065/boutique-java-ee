@@ -15,7 +15,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Controller
 @RequestMapping("/livraisons")
@@ -27,9 +26,9 @@ public class LivraisonController {
 
     @GetMapping
     public String listeLivraisons(Model model,
-                                  @RequestParam(required = false) LocalDate dateDebut,
-                                  @RequestParam(required = false) LocalDate dateFin,
-                                  @RequestParam(required = false) String fournisseur) {
+                                  @RequestParam(required = false, name = "dateDebut") LocalDate dateDebut,
+                                  @RequestParam(required = false,name = "dateFin") LocalDate dateFin,
+                                  @RequestParam(required = false,name = "fournisseur") String fournisseur) {
         if (dateDebut != null && dateFin != null) {
             LocalDateTime debut = dateDebut.atStartOfDay();
             LocalDateTime fin = dateFin.atTime(23, 59, 59);
@@ -77,7 +76,7 @@ public class LivraisonController {
     }
 
     @GetMapping("/{id}")
-    public String detailLivraison(@PathVariable Long id, Model model) {
+    public String detailLivraison(@PathVariable(name = "id") Long id, Model model) {
         try {
             model.addAttribute("livraison", livraisonService.getLivraisonById(id));
             return "livraisons/detail";
@@ -87,7 +86,7 @@ public class LivraisonController {
     }
 
     @GetMapping("/editer/{id}")
-    public String editerLivraisonForm(@PathVariable Long id, Model model) {
+    public String editerLivraisonForm(@PathVariable(name = "id") Long id, Model model) {
         try {
             model.addAttribute("livraison", livraisonService.getLivraisonById(id));
             model.addAttribute("produits", produitService.getAllProduits());
@@ -98,7 +97,7 @@ public class LivraisonController {
     }
 
     @PostMapping("/editer/{id}")
-    public String editerLivraison(@PathVariable Long id,
+    public String editerLivraison(@PathVariable(name = "id") Long id,
                                   @Valid @ModelAttribute("livraison") LivraisonDto livraisonDto,
                                   BindingResult result,
                                   Model model,
@@ -121,7 +120,7 @@ public class LivraisonController {
 
     @DeleteMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<Void> supprimerLivraison(@PathVariable Long id) {
+    public ResponseEntity<Void> supprimerLivraison(@PathVariable(name = "id") Long id) {
         try {
             livraisonService.deleteLivraison(id);
             return ResponseEntity.ok().build();
@@ -129,6 +128,7 @@ public class LivraisonController {
             return ResponseEntity.badRequest().build();
         }
     }
+
 
 //    @GetMapping("/api/livraisons-fournisseur")
 //    @ResponseBody
@@ -149,7 +149,7 @@ public class LivraisonController {
 //    }
 
     @GetMapping("/imprimer/{id}")
-    public String imprimerBonLivraison(@PathVariable Long id, Model model) {
+    public String imprimerBonLivraison(@PathVariable(name = "id") Long id, Model model) {
         try {
             model.addAttribute("livraison", livraisonService.getLivraisonById(id));
             return "livraisons/imprimer";

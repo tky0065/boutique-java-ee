@@ -35,7 +35,12 @@
             </li>
 
             <li class="nav-item">
-                <a href="<c:url value='/'/>" class="nav-link ${pageContext.request.requestURI.contains('/rapports') ? 'active' : ''}">
+                <a href="<c:url value='/historique'/>" class="nav-link ${pageContext.request.requestURI.contains('/historique') ? 'active' : ''}">
+                    <i class="bi bi-clock-history"></i> Historique
+                </a>
+
+            <li class="nav-item">
+                <a href="<c:url value='/rapports'/>" class="nav-link ${pageContext.request.requestURI.contains('/rapports') ? 'active' : ''}">
                     <i class="bi bi-file-earmark-text"></i> Rapports
                 </a>
             </li>

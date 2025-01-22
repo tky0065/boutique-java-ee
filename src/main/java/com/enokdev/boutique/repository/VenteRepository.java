@@ -58,14 +58,6 @@ public class VenteRepository {
         return query.getResultList();
     }
 
-    public List<Vente> findByUtilisateur(Utilisateur utilisateur) {
-        TypedQuery<Vente> query = em.createQuery(
-                "SELECT v FROM Vente v WHERE v.utilisateur = :utilisateur ORDER BY v.dateVente DESC",
-                Vente.class);
-        query.setParameter("utilisateur", utilisateur);
-        return query.getResultList();
-    }
-
     public BigDecimal getTotalVentesParPeriode(LocalDateTime debut, LocalDateTime fin) {
         TypedQuery<BigDecimal> query = em.createQuery(
                 "SELECT COALESCE(SUM(v.montantTotal), 0) FROM Vente v WHERE v.dateVente BETWEEN :debut AND :fin",
@@ -74,26 +66,38 @@ public class VenteRepository {
         query.setParameter("fin", fin);
         return query.getSingleResult();
     }
+    public List<Vente> findByUtilisateur(Utilisateur utilisateur) {
+        TypedQuery<Vente> query = em.createQuery(
+                "SELECT v FROM Vente v WHERE v.utilisateur = :utilisateur ORDER BY v.dateVente DESC",
+                Vente.class);
+        query.setParameter("utilisateur", utilisateur);
+        return query.getResultList();
+    }
+
+
 
     public void delete(Vente vente) {
         em.remove(em.contains(vente) ? vente : em.merge(vente));
     }
 
     public List<Map> findTopProduitsVendus(LocalDateTime debutDateTime, LocalDateTime finDateTime, int i) {
-
-        return em.createQuery(
-                "SELECT new map(p.nom as nom, SUM(lv.quantite) as quantite) " +
-                        "FROM LigneVente lv " +
-                        "JOIN lv.produit p " +
-                        "JOIN lv.vente v " +
-                        "WHERE v.dateVente BETWEEN :debut AND :fin " +
-                        "GROUP BY p.id " +
-                        "ORDER BY SUM(lv.quantite) DESC",
-                Map.class)
+        log.info("Recherche des top produits entre {} et {}", debutDateTime, finDateTime);
+        List<Map> results = em.createQuery(
+                        "SELECT new map(p.nom as nom, SUM(lv.quantite) as quantite) " +
+                                "FROM LigneVente lv " +
+                                "JOIN lv.produit p " +
+                                "JOIN lv.vente v " +
+                                "WHERE v.dateVente BETWEEN :debut AND :fin " +
+                                "GROUP BY p.id, p.nom " +
+                                "ORDER BY SUM(lv.quantite) DESC",
+                        Map.class)
                 .setParameter("debut", debutDateTime)
                 .setParameter("fin", finDateTime)
                 .setMaxResults(i)
                 .getResultList();
+
+        log.info("Résultats trouvés : {}", results);
+        return results;
     }
 
     public Object findVentesQuotidiennes(LocalDateTime debut, LocalDateTime fin) {
@@ -107,4 +111,5 @@ public class VenteRepository {
                 .setParameter("fin", fin)
                 .getResultList();
     }
+
 }

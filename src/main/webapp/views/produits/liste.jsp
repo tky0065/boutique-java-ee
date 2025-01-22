@@ -32,7 +32,7 @@
         </div>
 
         <!-- Footer -->
-        <c:import url="../layout/footer.jsp"/>
+        <div class=" "><c:import url="../layout/footer.jsp"/></div>
     </div>
 </div>
 
