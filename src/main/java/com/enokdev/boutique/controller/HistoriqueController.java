@@ -34,9 +34,9 @@ public class HistoriqueController {
 
     @GetMapping
     public String afficherHistorique(
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false,name = "type") String type,
+            @RequestParam(required = false, name = "dateDebut") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false,name = "dateFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
             Model model) {
 
         if (dateDebut == null) dateDebut = LocalDate.now().minusMonths(1);
@@ -73,17 +73,27 @@ public class HistoriqueController {
         return "historique/historique";
     }
 
+//    @GetMapping("/{id}/details")
+//    public String getDetails(@PathVariable(name = "id") Long id, @RequestParam String type, Model model) {
+//        if ("VENTE".equals(type)) {
+//            model.addAttribute("operation", venteService.getVenteById(id));
+//            return "ventes/detail";
+//        } else {
+//            model.addAttribute("operation", livraisonService.getLivraisonById(id));
+//            return "livraisons/detail";
+//        }
+//    }
     @GetMapping("/{id}/details")
-    public String getDetails(@PathVariable Long id, @RequestParam String type, Model model) {
-        if ("VENTE".equals(type)) {
-            model.addAttribute("operation", venteService.getVenteById(id));
-            return "ventes/detail";
-        } else {
-            model.addAttribute("operation", livraisonService.getLivraisonById(id));
-            return "livraisons/detail";
+    public String getDetails(@PathVariable(name = "id") Long id, Model model) {
+        try {
+            VenteResponse vente = venteService.getVenteById(id);
+            model.addAttribute("vente", vente);
+            return "fragments/vente-details"; // On va créer ce fragment
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des détails de la vente", e);
+            return "fragments/error";
         }
     }
-
     private OperationHistorique convertirVenteEnOperation(VenteResponse vente) {
         return OperationHistorique.builder()
                 .id(vente.getId())

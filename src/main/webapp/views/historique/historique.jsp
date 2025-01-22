@@ -24,7 +24,7 @@
         <!-- Header -->
         <c:import url="../layout/header.jsp"/>
 
-<div class="container-fluid">
+<div class="container-fluid mt-3">
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Historique des Opérations</h1>
@@ -91,12 +91,17 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="voirDetails('${operation.id}')">
+
+                                    <a href="<c:url value='/ventes/${operation.id}'/>"
+                                       class="btn btn-sm btn-outline-primary" title="Détails">
                                         <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-success" onclick="imprimerTicket('${operation.id}')">
-                                        <i class="bi bi-printer"></i>
-                                    </button>
+                                    </a>
+                                    <c:if test="${operation.type == 'VENTE'}">
+                                        <a  href="<c:url value='/tickets/${operation.id}'/>"
+                                           class="btn btn-sm btn-outline-success" title="Ticket">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+                                    </c:if>
                                 </div>
                             </td>
                         </tr>
@@ -124,29 +129,22 @@
 </div>
 
 <script>
-    function voirDetails(id) {
-        fetch(`/operations/${id}/details`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('detailsContent').innerHTML = html;
-                new bootstrap.Modal(document.getElementById('detailsModal')).show();
-            });
-    }
 
-    function imprimerTicket(id) {
-        window.open(`/operations/${id}/ticket`, '_blank');
-    }
 
-    document.getElementById('filterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const params = new URLSearchParams(formData);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validation des dates
+        const formFiltre = document.querySelector('form');
+        formFiltre.addEventListener('submit', function(e) {
+            const dateDebut = document.getElementById('dateDebut').value;
+            const dateFin = document.getElementById('dateFin').value;
 
-        fetch('/historique?' + params.toString())
-            .then(response => response.text())
-            .then(html => {
-                document.querySelector('.table-responsive').innerHTML = html;
-            });
+            if (dateDebut && dateFin) {
+                if (dateDebut > dateFin) {
+                    e.preventDefault();
+                    alert('La date de début doit être antérieure à la date de fin');
+                }
+            }
+        });
     });
 </script>
         <!-- Scripts -->
