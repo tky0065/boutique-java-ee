@@ -1,7 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<div class="container-fluid">
+<%@ page import="com.enokdev.boutique.utils.StringUtils" %>
+
+<!-- Bootstrap CSS et JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Gestion des Produits</h1>
@@ -58,8 +62,10 @@
                     <tbody>
                     <c:forEach items="${produits}" var="produit">
                         <tr>
-                            <td>${produit.nom}</td>
-                            <td>${produit.description}</td>
+                            <td>${StringUtils.truncate(produit.nom,20)}</td>
+
+                            <td>${StringUtils.truncate(produit.description, 20)}</td>
+
                             <td class="text-end">
                                 <fmt:formatNumber value="${produit.prixUnitaire}" pattern="#,##0"/> FCFA
                             </td>
@@ -75,7 +81,7 @@
                                        class="btn btn-sm btn-info" title="Détails">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="<c:url value='/produits/${produit.id}'/>"
+                                    <a href="<c:url value='/produits/editer/${produit.id}'/>"
                                        class="btn btn-sm btn-warning" title="Modifier">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -92,7 +98,7 @@
             </div>
         </div>
     </div>
-</div>
+
 
 <!-- Modal de confirmation de suppression -->
 <div class="modal fade" id="suppressionModal" tabindex="-1">
@@ -115,28 +121,32 @@
 
 <script>
     let produitASupprimer = null;
-    const modal = new bootstrap.Modal(document.getElementById('suppressionModal'));
 
     function confirmerSuppression(produitId) {
         produitASupprimer = produitId;
-        modal.show();
+        var suppressionModal = new bootstrap.Modal(document.getElementById('suppressionModal'));
+        suppressionModal.show();
     }
 
     document.getElementById('confirmDelete').addEventListener('click', function() {
         if (produitASupprimer) {
-            fetch(`/produits/${produitASupprimer}`, { method: 'DELETE' })
-                .then(response => {
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        alert('Erreur lors de la suppression du produit');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    alert('Erreur lors de la suppression du produit');
-                });
+            // Créer un formulaire dynamiquement
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '<c:url value="/produits/delete/"/>' + produitASupprimer;
+            document.body.appendChild(form);
+            form.submit();
         }
-        modal.hide();
+    });
+
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
     });
 </script>

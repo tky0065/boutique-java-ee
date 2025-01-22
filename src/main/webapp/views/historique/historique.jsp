@@ -23,8 +23,9 @@
     <div class="main-content">
         <!-- Header -->
         <c:import url="../layout/header.jsp"/>
-
-<div class="container-fluid mt-3">
+<div class="container-fluid mt-3 mb-5">
+    <!-- Messages flash -->
+    <c:import url="../fragments/messages.jsp"/>
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Historique des Opérations</h1>
@@ -125,11 +126,24 @@
                 </div>
             </div>
         </div>
+        <c:import url="../layout/footer.jsp"/>
     </div>
+</div>
+        <!-- Footer -->
+        <c:import url="../layout/footer.jsp"/>
 </div>
 
 <script>
-
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         // Validation des dates

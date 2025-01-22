@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 
 import java.sql.Date;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ public class UtilisateurService {
                 .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé avec l'ID : " + id));
     }
 
+
     public void saveUtilisateur(UtilisateurDto utilisateurDto) {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setNumeroMatricule(utilisateurDto.getNumeroMatricule());
@@ -42,6 +44,7 @@ public class UtilisateurService {
         utilisateur.setSexe(Utilisateur.Sexe.valueOf(utilisateurDto.getSexe()));
         utilisateur.setDateNaissance(Date.valueOf(utilisateurDto.getDateNaissance()).toLocalDate()); // Conversion de LocalDate en Date
         utilisateur.setIdentifiant(utilisateurDto.getIdentifiant());
+        utilisateur.setRole(utilisateurDto.getRole());
         utilisateur.setMotDePasse(utilisateurDto.getMotDePasse());
         utilisateurRepository.save(utilisateur);
 
@@ -51,5 +54,40 @@ public class UtilisateurService {
         return utilisateurRepository.findByIdentifiantAndMotDePasse(identifiant, motDePasse)
                 .map(utilisateurMapper::toDto)
                 .orElseThrow(() -> new RuntimeException("Identifiants invalides"));
+    }
+
+    public void deleteUtilisateur(Long id) {
+        utilisateurRepository.findById(id)
+                .ifPresent(utilisateurRepository::delete);
+    }
+    public void updateProfil(UtilisateurDto utilisateurDto) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurDto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+
+        utilisateur.setNom(utilisateurDto.getNom());
+        utilisateur.setPrenom(utilisateurDto.getPrenom());
+        utilisateur.setSexe(Utilisateur.Sexe.valueOf(utilisateurDto.getSexe()));
+        utilisateur.setIdentifiant(utilisateurDto.getIdentifiant());
+        utilisateur.setRole(utilisateurDto.getRole());
+
+        utilisateur.setDateNaissance(Date.valueOf(utilisateurDto.getDateNaissance()).toLocalDate());
+
+        utilisateurRepository.save(utilisateur);
+    }
+
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+
+        if (!utilisateur.getMotDePasse().equals(oldPassword)) {
+            throw new IllegalArgumentException("Ancien mot de passe incorrect");
+        }
+
+        utilisateur.setMotDePasse(newPassword);
+        utilisateurRepository.save(utilisateur);
+    }
+
+    public List<Utilisateur.Role> getAllRoles() {
+        return Arrays.asList(Utilisateur.Role.values());
     }
 }

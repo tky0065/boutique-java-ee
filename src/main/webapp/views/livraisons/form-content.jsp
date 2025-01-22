@@ -2,7 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<div class="container-fluid">
+<div class="container-fluid mt-4 mb-4">
+    <!-- Messages flash -->
+    <c:import url="../fragments/messages.jsp"/>
     <div class="card shadow">
         <div class="card-header">
             <h3 class="card-title mb-0">Nouvelle Livraison</h3>
@@ -196,5 +198,15 @@
             e.preventDefault();
             alert('Veuillez remplir tous les champs pour chaque produit');
         }
+    });
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
     });
 </script>

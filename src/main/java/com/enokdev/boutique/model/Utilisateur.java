@@ -49,6 +49,28 @@ public class Utilisateur {
         HOMME,
         FEMME
     }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    public enum Role {
+        ADMIN("Administrateur"),
+        VENDEUR("Vendeur"),
+        GESTIONNAIRE_STOCK("Gestionnaire de stock");
+
+        private final String libelle;
+
+        Role(String libelle) {
+            this.libelle = libelle;
+        }
+
+        public String getLibelle() {
+            return libelle;
+        }
+    }
+
+
+
 
 
 }

@@ -1,8 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="container-fluid">
+<div class="container-fluid mb-5 mt-5">
+
     <!-- En-tête -->
+    <!-- Messages flash -->
+    <c:import url="../fragments/messages.jsp"/>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
             ${produit.id == null ? 'Nouveau Produit' : 'Modifier Produit'}
@@ -85,6 +88,7 @@
 </div>
 
 <script>
+
     // Validation des formulaires Bootstrap
     (function () {
         'use strict'
@@ -104,10 +108,14 @@
             })
     })()
 
-    // // Formater le prix en FCFA
-    // document.getElementById('prixUnitaire').addEventListener('input', function(e) {
-    //     if (this.value) {
-    //         this.value = Math.round(this.value / 100) * 100;
-    //     }
-    // });
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
 </script>

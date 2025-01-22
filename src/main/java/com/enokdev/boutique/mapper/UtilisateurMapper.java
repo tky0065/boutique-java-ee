@@ -18,35 +18,36 @@ public class UtilisateurMapper {
                 .sexe(String.valueOf(utilisateur.getSexe()))
                 .numeroMatricule(utilisateur.getNumeroMatricule())
                 .motDePasse(utilisateur.getMotDePasse())
+                .role(utilisateur.getRole())
                 .build();
     }
 
-   public Utilisateur toEntity(UtilisateurDto dto){
-
-            if (dto == null) return null;
-
-        return Utilisateur.builder()
-                    .id(dto.getId())
-                    .nom(dto.getNom())
-                    .prenom(dto.getPrenom())
-                    .dateNaissance(dto.getDateNaissance())
-                    .identifiant(dto.getIdentifiant())
-                    .sexe(Utilisateur.Sexe.valueOf(dto.getSexe()))
-                    .numeroMatricule(dto.getNumeroMatricule())
-                    .motDePasse(dto.getMotDePasse())
-                    .build();
-   }
-
-    public   void updateEntityFromDto(UtilisateurDto dto,Utilisateur utilisateur){
-        if (dto == null || utilisateur == null) return;
-
-        utilisateur.setNom(dto.getNom());
-        utilisateur.setPrenom(dto.getPrenom());
-        utilisateur.setDateNaissance(dto.getDateNaissance());
-        utilisateur.setIdentifiant(dto.getIdentifiant());
-        utilisateur.setSexe(Utilisateur.Sexe.valueOf(dto.getSexe()));
-        utilisateur.setNumeroMatricule(dto.getNumeroMatricule());
-        utilisateur.setMotDePasse(dto.getMotDePasse());
-
-    }
+//   public Utilisateur toEntity(UtilisateurDto dto){
+//
+//            if (dto == null) return null;
+//
+//        return Utilisateur.builder()
+//                    .id(dto.getId())
+//                    .nom(dto.getNom())
+//                    .prenom(dto.getPrenom())
+//                    .dateNaissance(dto.getDateNaissance())
+//                    .identifiant(dto.getIdentifiant())
+//                    .sexe(Utilisateur.Sexe.valueOf(dto.getSexe()))
+//                    .numeroMatricule(dto.getNumeroMatricule())
+//                    .motDePasse(dto.getMotDePasse())
+//                    .build();
+//   }
+//
+//    public   void updateEntityFromDto(UtilisateurDto dto,Utilisateur utilisateur){
+//        if (dto == null || utilisateur == null) return;
+//
+//        utilisateur.setNom(dto.getNom());
+//        utilisateur.setPrenom(dto.getPrenom());
+//        utilisateur.setDateNaissance(dto.getDateNaissance());
+//        utilisateur.setIdentifiant(dto.getIdentifiant());
+//        utilisateur.setSexe(Utilisateur.Sexe.valueOf(dto.getSexe()));
+//        utilisateur.setNumeroMatricule(dto.getNumeroMatricule());
+//        utilisateur.setMotDePasse(dto.getMotDePasse());
+//
+//    }
 }

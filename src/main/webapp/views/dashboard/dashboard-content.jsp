@@ -1,7 +1,9 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 mb-4 mt-4">
+    <!-- Messages flash -->
+    <c:import url="../fragments/messages.jsp"/>
     <!-- En-tête du Dashboard -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Tableau de Bord</h1>
@@ -231,5 +233,15 @@
                     data.nombreProduitsAlerte;
             });
     }
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

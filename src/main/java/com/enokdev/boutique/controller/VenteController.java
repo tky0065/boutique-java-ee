@@ -2,9 +2,12 @@ package com.enokdev.boutique.controller;
 
 import com.enokdev.boutique.dto.VenteDto;
 import com.enokdev.boutique.dto.VenteResponse;
+import com.enokdev.boutique.model.Utilisateur;
 import com.enokdev.boutique.service.ProduitService;
 import com.enokdev.boutique.service.TicketService;
 import com.enokdev.boutique.service.VenteService;
+import com.enokdev.boutique.utils.RequiredPermission;
+import com.enokdev.boutique.utils.RequiredRole;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -57,7 +60,10 @@ public class VenteController {
         return "ventes/form";
     }
 
+    @RequiredPermission("VENTE_CREER")
+    @RequiredRole({Utilisateur.Role.VENDEUR, Utilisateur.Role.ADMIN})
     @PostMapping("/nouvelle")
+
     public String ajouterVente(@Valid @ModelAttribute("vente") VenteDto venteDto,
                                BindingResult result,
                                HttpSession session,

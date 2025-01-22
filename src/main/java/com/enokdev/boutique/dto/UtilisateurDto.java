@@ -1,5 +1,6 @@
 package com.enokdev.boutique.dto;
 
+import com.enokdev.boutique.model.Utilisateur;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -10,6 +11,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -42,4 +45,10 @@ public class UtilisateurDto {
     @NotBlank(message = "Le mot de passe est obligatoire")
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String motDePasse;
+    private Utilisateur.Role role;
+
+    // get to formate dateNaissance
+    public String getDateNaissance() {
+        return dateNaissance.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
 }

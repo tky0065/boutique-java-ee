@@ -26,7 +26,8 @@
 
         <!-- Main Content Area -->
         <div class="content-wrapper">
-            <div class="container-fluid">
+            <div class="container-fluid mt-4 mb-4">
+
                 <c:import url="detail-content.jsp"/>
             </div>
         </div>

@@ -1,7 +1,11 @@
 package com.enokdev.boutique.controller;
 
 import com.enokdev.boutique.dto.ProduitDto;
+import com.enokdev.boutique.model.Utilisateur;
 import com.enokdev.boutique.service.ProduitService;
+import com.enokdev.boutique.utils.RequiredPermission;
+import com.enokdev.boutique.utils.RequiredRole;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,12 +35,15 @@ public class ProduitController {
         return "produits/liste";
     }
 
+    @RequiredPermission("PRODUIT_CREER")
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
     @GetMapping("/nouveau")
     public String nouveauProduitForm(Model model) {
         model.addAttribute("produit", new ProduitDto());
         return "produits/form";
     }
 
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
     @PostMapping("/nouveau")
     public String ajouterProduit(@Valid @ModelAttribute("produit") ProduitDto produitDto,
                                  BindingResult result,
@@ -60,27 +67,29 @@ public class ProduitController {
             model.addAttribute("produit", produitService.getProduitById(id));
             return "produits/detail";
         } catch (Exception e) {
-            return "redirect:/produits";
+            return "redirect:/produits/liste";
         }
     }
 
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
     @GetMapping("/editer/{id}")
-    public String editerProduitForm(@PathVariable Long id, Model model) {
+    public String editerProduitForm(@PathVariable(name = "id") Long id, Model model) {
         try {
             model.addAttribute("produit", produitService.getProduitById(id));
-            return "produits/form";
+            return "produits/edite";
         } catch (Exception e) {
-            return "redirect:/produits";
+            return "redirect:/produits/liste";
         }
     }
 
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
     @PostMapping("/editer/{id}")
-    public String editerProduit(@PathVariable Long id,
+    public String editerProduit(@PathVariable(name = "id") Long id,
                                 @Valid @ModelAttribute("produit") ProduitDto produitDto,
                                 BindingResult result,
                                 RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            return "produits/form";
+            return "produits/edite";
         }
 
         try {
@@ -89,22 +98,34 @@ public class ProduitController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour du produit");
         }
-        return "redirect:/produits";
+        return "redirect:/produits/liste";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimerProduit(@PathVariable Long id) {
+    @RequiredPermission("PRODUIT_SUPPRIMER")
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
+    @PostMapping("/delete/{id}")
+    public String supprimerProduit(@PathVariable(name = "id") Long id,
+                                    RedirectAttributes redirectAttributes) {
         try {
-            produitService.deleteProduit(id);
-            return ResponseEntity.ok().build();
+            var  produict = produitService.getProduitById(id);
+            if (produict != null) {
+                produitService.deleteProduit(id);
+            }
+            redirectAttributes.addFlashAttribute("success",
+                    "Produit supprimé avec succès");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Produit non trouvé");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de la suppression: " + e.getMessage());
         }
+        return "redirect:/produits/liste";
     }
 
     @GetMapping("/api/stock/{id}")
     @ResponseBody
-    public ResponseEntity<Integer> getStock(@PathVariable Long id) {
+    public ResponseEntity<Integer> getStock(@PathVariable(name = "id") Long id) {
         try {
             ProduitDto produit = produitService.getProduitById(id);
             return ResponseEntity.ok(produit.getQuantiteStock());

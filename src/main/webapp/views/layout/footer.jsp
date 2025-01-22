@@ -3,11 +3,11 @@
 
 <style>
     .footer {
-        background-color: #343a40; /* Couleur de fond sombre */
+        background-color: #96989a; /* Couleur de fond sombre */
         color: #ffffff; /* Couleur de texte blanche */
-        padding: 5px 0; /* Espacement interne */
+        padding: 6px 0; /* Espacement interne */
         text-align: center; /* Centrage du contenu */
-        font-size: 5px; /* Taille du texte */
+        font-size: 8px; /* Taille du texte */
         box-shadow: 0 -2px 3px rgba(0, 0, 0, 0.1); /* Ombre subtile */
         position: fixed; /* Collé en bas */
         bottom: 0;

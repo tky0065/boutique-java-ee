@@ -75,4 +75,19 @@ public class ProduitRepository {
         return  em.createQuery("SELECT COUNT(p) FROM Produit p", Long.class)
                 .getSingleResult();
     }
+
+    public List<Produit> findByQuantiteStockLessThanOrEqualToSeuilAlerte() {
+        return em.createQuery(
+                        "SELECT p FROM Produit p WHERE p.quantiteStock <= p.seuilAlerte ORDER BY p.quantiteStock",
+                        Produit.class)
+                .getResultList();
+    }
+
+    public Integer countByQuantiteStockLessThanOrEqualToSeuilAlerte() {
+        Long count = em.createQuery(
+                        "SELECT COUNT(p) FROM Produit p WHERE p.quantiteStock <= p.seuilAlerte",
+                        Long.class)
+                .getSingleResult();
+        return count.intValue();
+    }
 }

@@ -32,6 +32,7 @@ public class AuthController {
             UtilisateurDto utilisateur = utilisateurService.authenticateUtilisateur(identifiant, motDePasse);
             session.setAttribute("utilisateur", utilisateur);
             session.setAttribute("userId", utilisateur.getId());
+            session.setAttribute("userRole", utilisateur.getRole());
             return "redirect:/dashboard";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", "Identifiants incorrects");

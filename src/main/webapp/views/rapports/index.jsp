@@ -25,7 +25,9 @@
         <!-- Header -->
         <c:import url="../layout/header.jsp"/>
 
-<div class="container-fluid mt-3">
+<div class="container-fluid mt-4 mb-4">
+    <!-- Messages flash -->
+    <c:import url="../fragments/messages.jsp"/>
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Rapports et Statistiques</h1>
@@ -185,7 +187,9 @@
             </div>
         </div>
     </div>
-</div>
+</div
+        <!-- Footer -->
+        <c:import url="../layout/footer.jsp"/>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -446,9 +450,20 @@
         document.querySelector('[data-stat="benefice"]').textContent =
             new Intl.NumberFormat('fr-FR').format(stats.benefice) + ' FCFA';
     }
+
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
 </script>
-<!-- Footer -->
-<div class=" "><c:import url="../layout/footer.jsp"/></div>
+
+
 </div>
 </div>
 </body>

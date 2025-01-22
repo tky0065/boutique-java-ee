@@ -72,5 +72,7 @@ public class UtilisateurRepository {
         query.setParameter("identifiant", identifiant);
         return query.getSingleResult() > 0;
     }
+
+
 }
 

@@ -1,5 +1,6 @@
 package com.enokdev.boutique.service;
 
+import com.enokdev.boutique.dto.AlerteStockDto;
 import com.enokdev.boutique.dto.ProduitDto;
 import com.enokdev.boutique.mapper.ProduitMapper;
 import com.enokdev.boutique.model.Produit;
@@ -98,5 +99,20 @@ public class ProduitService {
                             .multiply(BigDecimal.valueOf(produit.getQuantiteStock()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public List<AlerteStockDto> getProduitsEnAlerte() {
+        return produitRepository.findByQuantiteStockLessThanOrEqualToSeuilAlerte().stream()
+                .map(produit -> AlerteStockDto.builder()
+                        .produitId(produit.getId())
+                        .nom(produit.getNom())
+                        .quantiteStock(produit.getQuantiteStock())
+                        .seuilAlerte(produit.getSeuilAlerte())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public Integer getNombreProduitsEnAlerte() {
+        return produitRepository.countByQuantiteStockLessThanOrEqualToSeuilAlerte();
     }
 }

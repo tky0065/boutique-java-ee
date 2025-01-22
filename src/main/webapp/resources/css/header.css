@@ -3,15 +3,17 @@
     position: fixed;
     top: 0;
     right: 0;
-    left: var(--sidebar-width);
     height: var(--header-height);
-    background-color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 2px 4px rgba(0,0,0,.03);
     z-index: 1020;
-    padding: 0 1.5rem;
+    left: 250px;
+    border-bottom: 1px solid var(--border-color);
+
+    margin: 0;
+    padding: 0;
 }
 
 /* Conteneur principal de la zone de recherche et du titre */
