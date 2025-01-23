@@ -5,6 +5,7 @@ import com.enokdev.boutique.mapper.UtilisateurMapper;
 import com.enokdev.boutique.model.Utilisateur;
 import com.enokdev.boutique.repository.UtilisateurRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -45,17 +46,25 @@ public class UtilisateurService {
         utilisateur.setDateNaissance(Date.valueOf(utilisateurDto.getDateNaissance()).toLocalDate()); // Conversion de LocalDate en Date
         utilisateur.setIdentifiant(utilisateurDto.getIdentifiant());
         utilisateur.setRole(utilisateurDto.getRole());
-        utilisateur.setMotDePasse(utilisateurDto.getMotDePasse());
+        // Crypter le mot de passe avant de le sauvegarder
+        String hashedPassword = BCrypt.hashpw(utilisateurDto.getMotDePasse(), BCrypt.gensalt());
+        utilisateur.setMotDePasse(hashedPassword);
+
         utilisateurRepository.save(utilisateur);
 
     }
 
     public UtilisateurDto authenticateUtilisateur(String identifiant, String motDePasse) {
-        return utilisateurRepository.findByIdentifiantAndMotDePasse(identifiant, motDePasse)
-                .map(utilisateurMapper::toDto)
-                .orElseThrow(() -> new RuntimeException("Identifiants invalides"));
-    }
+        Utilisateur utilisateur = utilisateurRepository.findByIdentifiant(identifiant)
+                .orElseThrow(() -> new RuntimeException("Identifiant invalide"));
 
+        // Vérifier le mot de passe
+        if (!BCrypt.checkpw(motDePasse, utilisateur.getMotDePasse())) {
+            throw new RuntimeException("Mot de passe incorrect");
+        }
+
+        return utilisateurMapper.toDto(utilisateur);
+    }
     public void deleteUtilisateur(Long id) {
         utilisateurRepository.findById(id)
                 .ifPresent(utilisateurRepository::delete);
@@ -79,11 +88,14 @@ public class UtilisateurService {
         Utilisateur utilisateur = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
 
-        if (!utilisateur.getMotDePasse().equals(oldPassword)) {
+        // Vérifier l'ancien mot de passe
+        if (!BCrypt.checkpw(oldPassword, utilisateur.getMotDePasse())) {
             throw new IllegalArgumentException("Ancien mot de passe incorrect");
         }
 
-        utilisateur.setMotDePasse(newPassword);
+        // Crypter le nouveau mot de passe
+        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        utilisateur.setMotDePasse(hashedPassword);
         utilisateurRepository.save(utilisateur);
     }
 
