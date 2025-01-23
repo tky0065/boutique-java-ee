@@ -1,9 +1,10 @@
 package com.enokdev.boutique.controller;
 
-import com.enokdev.boutique.dto.VenteDto;
+
 import com.enokdev.boutique.dto.VenteResponse;
 import com.enokdev.boutique.service.ProduitService;
 import com.enokdev.boutique.service.VenteService;
+import com.google.gson.Gson;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
 
@@ -25,10 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -38,7 +36,7 @@ import java.time.LocalDateTime;
 @Controller
 @RequestMapping("/rapports")
 @RequiredArgsConstructor
-
+@CrossOrigin("*")
 public class RapportController {
 
     private final VenteService venteService;
@@ -46,20 +44,46 @@ public class RapportController {
     private final Logger log = LogManager.getLogger();
 
     @GetMapping
-    public String afficherRapports(Model model) {
-        LocalDateTime debut = LocalDateTime.now().withHour(0).withMinute(0);
-        LocalDateTime fin = LocalDateTime.now().withHour(23).withMinute(59);
+    public String afficherRapports(
+            @RequestParam(defaultValue = "jour",name = "periode") String periode,
+            @RequestParam(required = false,name = "dateDebut") LocalDate dateDebut,
+            @RequestParam(required = false,name = "dateFin") LocalDate dateFin,
+            Model model)  {
 
-        // Récupérer les statistiques
-        Map<String, Object> stats = calculerStatistiques(debut, fin);
-        model.addAttribute("stats", stats);
+        if (dateDebut == null) dateDebut = LocalDate.now();
+        if (dateFin == null) dateFin = LocalDate.now();
 
-        // Récupérer les données pour les graphiques
-        List<VenteResponse> ventes = venteService.getVentesParPeriode(debut, fin);
-        List<Map> topProduits = venteService.getTopProduitsVendus(debut, fin, 5);
+        LocalDateTime[] plage = calculerPlage(periode, dateDebut, dateFin);
+        Gson gson = new Gson();
 
-        model.addAttribute("ventesData", ventes);
-        model.addAttribute("topProduits", topProduits);
+        try {
+            // Statistiques
+            Map<String, Object> stats = calculerStatistiques(plage[0], plage[1]);
+            model.addAttribute("stats", stats);
+            model.addAttribute("statsJson", gson.toJson(stats));
+
+            // Données des ventes
+            List<VenteResponse> ventes = venteService.getVentesParPeriode(plage[0], plage[1]);
+            Map<String, Object> ventesData = transformerVentesData(ventes);
+            model.addAttribute("ventesDataJson", gson.toJson(ventesData));
+
+            // Top produits
+            List<Map> topProduits = venteService.getTopProduitsVendus(plage[0], plage[1], 5);
+            Map<String, Object> topProduitsData = transformerTopProduitsData(topProduits);
+            model.addAttribute("topProduitsDataJson", gson.toJson(topProduitsData));
+
+            // Ajouter les paramètres de période pour le formulaire
+            model.addAttribute("periode", periode);
+            model.addAttribute("dateDebut", dateDebut);
+            model.addAttribute("dateFin", dateFin);
+
+        } catch (Exception e) {
+            log.error("Erreur lors de la préparation des données", e);
+            // Ajouter des données vides en cas d'erreur
+            model.addAttribute("statsJson", "{}");
+            model.addAttribute("ventesDataJson", "{\"labels\":[],\"donnees\":[]}");
+            model.addAttribute("topProduitsDataJson", "{\"labels\":[],\"donnees\":[]}");
+        }
 
         return "rapports/index";
     }
@@ -67,9 +91,12 @@ public class RapportController {
     @GetMapping("/data")
     @ResponseBody
     public Map<String, Object> getDataRapports(
-            @RequestParam(defaultValue = "jour") String periode,
-            @RequestParam(required = false) LocalDate dateDebut,
-            @RequestParam(required = false) LocalDate dateFin) {
+            @RequestParam(defaultValue = "jour",name = "periode") String periode,
+            @RequestParam(required = false,name = "dateDebut") LocalDate dateDebut,
+            @RequestParam(required = false,name = "dateFin") LocalDate dateFin) {
+
+        log.info("Récupération des données pour période: {}, dateDebut: {}, dateFin: {}",
+                periode, dateDebut, dateFin);
 
         if (dateDebut == null) dateDebut = LocalDate.now();
         if (dateFin == null) dateFin = LocalDate.now();
@@ -77,27 +104,31 @@ public class RapportController {
         LocalDateTime[] plage = calculerPlage(periode, dateDebut, dateFin);
         Map<String, Object> data = new HashMap<>();
 
-        // Statistiques
-        Map<String, Object> stats = calculerStatistiques(plage[0], plage[1]);
-        data.put("stats", stats);
+        try {
+            // Statistiques
+            Map<String, Object> stats = calculerStatistiques(plage[0], plage[1]);
+            data.put("stats", stats);
 
-        // Top produits avec transformation
-        List<Map> topProduits = venteService.getTopProduitsVendus(plage[0], plage[1], 5);
-        Map<String, Object> topProduitsData = new HashMap<>();
-        List<String> labels = new ArrayList<>();
-        List<Number> values = new ArrayList<>();
+            // Données des ventes
+            List<VenteResponse> ventes = venteService.getVentesParPeriode(plage[0], plage[1]);
+            Map<String, Object> ventesData = transformerVentesData(ventes);
+            data.put("ventes", ventesData);
 
-        for (Map produit : topProduits) {
-            labels.add((String) produit.get("nom"));
-            values.add((Number) produit.get("quantite"));
+            // Log des données de ventes pour debug
+            log.info("Données des ventes: {}", ventesData);
+
+            // Top produits
+            List<Map> topProduits = venteService.getTopProduitsVendus(plage[0], plage[1], 5);
+            Map<String, Object> topProduitsData = transformerTopProduitsData(topProduits);
+            data.put("topProduits", topProduitsData);
+
+            // Log des données des top produits pour debug
+            log.info("Données des top produits: {}", topProduitsData);
+
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des données", e);
+            throw new RuntimeException("Erreur lors de la récupération des données", e);
         }
-        topProduitsData.put("labels", labels);
-        topProduitsData.put("donnees", values);
-        data.put("topProduits", topProduitsData);
-
-        // Données des ventes
-        List<VenteResponse> ventes = venteService.getVentesParPeriode(plage[0], plage[1]);
-        data.put("ventes", transformerVentesData(ventes));
 
         return data;
     }
@@ -107,9 +138,15 @@ public class RapportController {
         List<String> labels = new ArrayList<>();
         List<BigDecimal> montants = new ArrayList<>();
 
-        for (VenteResponse vente : ventes) {
-            labels.add(vente.getDateVenteFormatted());
-            montants.add(vente.getMontantTotal());
+        if (ventes != null && !ventes.isEmpty()) {
+            for (VenteResponse vente : ventes) {
+                labels.add(vente.getDateVenteFormatted());
+                montants.add(vente.getMontantTotal() != null ? vente.getMontantTotal() : BigDecimal.ZERO);
+            }
+        } else {
+            // Ajouter au moins une donnée vide pour éviter les graphiques vides
+            labels.add(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            montants.add(BigDecimal.ZERO);
         }
 
         result.put("labels", labels);
@@ -122,15 +159,24 @@ public class RapportController {
         List<String> labels = new ArrayList<>();
         List<Number> quantites = new ArrayList<>();
 
-        for (Map produit : topProduits) {
-            labels.add((String) produit.get("nom"));
-            quantites.add((Number) produit.get("quantite"));
+        if (topProduits != null && !topProduits.isEmpty()) {
+            for (Map produit : topProduits) {
+                String nom = (String) produit.get("nom");
+                Number quantite = (Number) produit.get("quantite");
+                labels.add(nom != null ? nom : "Inconnu");
+                quantites.add(quantite != null ? quantite : 0);
+            }
+        } else {
+            // Ajouter au moins une donnée vide pour éviter les graphiques vides
+            labels.add("Aucun produit");
+            quantites.add(0);
         }
 
         result.put("labels", labels);
         result.put("donnees", quantites);
         return result;
     }
+
 
     @GetMapping("/excel")
     public void exporterExcel(

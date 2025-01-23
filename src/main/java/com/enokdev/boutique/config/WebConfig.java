@@ -66,7 +66,7 @@ public class WebConfig implements WebMvcConfigurer {
         configurer.enable();
     }
 
-    // Ajout du bean RoleInterceptor
+    // Bean RoleInterceptor
     @Bean
     public RoleInterceptor roleInterceptor() {
         return new RoleInterceptor();

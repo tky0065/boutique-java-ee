@@ -45,7 +45,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             if (permissionAnn != null) {
                 boolean hasPermission = rolePermissions.hasPermission(userRole, permissionAnn.value());
                 if (!hasPermission) {
-                    response.sendRedirect(request.getContextPath() + "/acces-refuse");
+                    response.sendRedirect(request.getContextPath() + "/errors/acces-refuse");
                     return false;
                 }
             }

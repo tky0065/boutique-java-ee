@@ -36,17 +36,17 @@ public class UtilisateurRepository {
                 .getResultList();
     }
 
-    public Optional<Utilisateur> findByIdentifiant(String identifiant) {
-        try {
-            TypedQuery<Utilisateur> query = em.createQuery(
-                    "SELECT u FROM Utilisateur u WHERE u.identifiant = :identifiant",
-                    Utilisateur.class);
-            query.setParameter("identifiant", identifiant);
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
-    }
+//    public Optional<Utilisateur> findByIdentifiant(String identifiant) {
+//        try {
+//            TypedQuery<Utilisateur> query = em.createQuery(
+//                    "SELECT u FROM Utilisateur u WHERE u.identifiant = :identifiant",
+//                    Utilisateur.class);
+//            query.setParameter("identifiant", identifiant);
+//            return Optional.ofNullable(query.getSingleResult());
+//        } catch (NoResultException e) {
+//            return Optional.empty();
+//        }
+//    }
 
     public Optional<Utilisateur> findByIdentifiantAndMotDePasse(String identifiant, String motDePasse) {
         try {
@@ -65,13 +65,7 @@ public class UtilisateurRepository {
         em.remove(em.contains(utilisateur) ? utilisateur : em.merge(utilisateur));
     }
 
-    public boolean existsByIdentifiant(String identifiant) {
-        TypedQuery<Long> query = em.createQuery(
-                "SELECT COUNT(u) FROM Utilisateur u WHERE u.identifiant = :identifiant",
-                Long.class);
-        query.setParameter("identifiant", identifiant);
-        return query.getSingleResult() > 0;
-    }
+
 
 
 }

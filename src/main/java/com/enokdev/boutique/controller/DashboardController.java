@@ -6,8 +6,11 @@ import com.enokdev.boutique.dto.VenteResponse;
 import com.enokdev.boutique.service.ProduitService;
 import com.enokdev.boutique.service.VenteService;
 import com.enokdev.boutique.service.LivraisonService;
+import com.google.gson.Gson;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,37 +33,86 @@ public class DashboardController {
     private final ProduitService produitService;
     private final VenteService venteService;
     private final LivraisonService livraisonService;
+    private final Logger log = LogManager.getLogger();
+
 
     @GetMapping
     public String dashboard(Model model, HttpSession session) {
         LocalDateTime debutJour = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         LocalDateTime finJour = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+        Gson gson = new Gson();
 
-        // Statistiques des ventes du jour
-        List<VenteResponse> ventesJour = venteService.getVentesParPeriode(debutJour, finJour);
-        BigDecimal totalVentesJour = ventesJour.stream()
-                .map(VenteResponse::getMontantTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        try {
+            // Statistiques des ventes du jour
+            List<VenteResponse> ventesJour = venteService.getVentesParPeriode(debutJour, finJour);
+            BigDecimal totalVentesJour = ventesJour.stream()
+                    .map(VenteResponse::getMontantTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Statistiques des livraisons du jour
-        BigDecimal totalLivraisonsJour = livraisonService.getTotalLivraisonsParPeriode(debutJour, finJour);
+            // Statistiques des livraisons du jour
+            BigDecimal totalLivraisonsJour = livraisonService.getTotalLivraisonsParPeriode(debutJour, finJour);
 
-        // Produits en alerte de stock
-        List<ProduitDto> produitsAlerte = produitService.getProduitsSousSeuilAlerte();
+            // Produits en alerte de stock
+            List<ProduitDto> produitsAlerte = produitService.getProduitsSousSeuilAlerte();
 
-        // Total des produits
-        Long totalProduits = produitService.getTotalProduits();
+            // Total des produits
+            Long totalProduits = produitService.getTotalProduits();
 
-        // Ajouter les données au modèle
-        model.addAttribute("ventesJour", ventesJour);
-        model.addAttribute("ventesJourTotal", totalVentesJour);
-        model.addAttribute("livraisonsJourTotal", totalLivraisonsJour);
-        model.addAttribute("produitsAlerte", produitsAlerte);
-        model.addAttribute("totalProduits", totalProduits);
+            // Top 5 des produits vendus
+            List<Map> topProduits = venteService.getTopProduitsVendus(debutJour, finJour, 5);
+            Map<String, Object> topProduitsData = transformerTopProduitsData(topProduits);
+
+            // Données des ventes pour le graphique
+            Map<String, Object> ventesData = transformerVentesData(ventesJour);
+
+            // Ajouter les données au modèle
+            model.addAttribute("ventesJour", ventesJour);
+            model.addAttribute("ventesJourTotal", totalVentesJour);
+            model.addAttribute("livraisonsJourTotal", totalLivraisonsJour);
+            model.addAttribute("produitsAlerte", produitsAlerte);
+            model.addAttribute("totalProduits", totalProduits);
+
+            // Ajouter les données JSON pour les graphiques
+            model.addAttribute("ventesDataJson", gson.toJson(ventesData));
+            model.addAttribute("topProduitsDataJson", gson.toJson(topProduitsData));
+
+        } catch (Exception e) {
+            // Gérer les erreurs
+            log.error("Erreur lors du chargement du dashboard", e);
+        }
 
         return "dashboard/index";
     }
 
+    private Map<String, Object> transformerTopProduitsData(List<Map> topProduits) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Number> quantites = new ArrayList<>();
+
+        for (Map produit : topProduits) {
+            labels.add((String) produit.get("nom"));
+            quantites.add((Number) produit.get("quantite"));
+        }
+
+        result.put("labels", labels);
+        result.put("donnees", quantites);
+        return result;
+    }
+
+    private Map<String, Object> transformerVentesData(List<VenteResponse> ventes) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<BigDecimal> montants = new ArrayList<>();
+
+        for (VenteResponse vente : ventes) {
+            labels.add(vente.getDateVenteFormatted());
+            montants.add(vente.getMontantTotal());
+        }
+
+        result.put("labels", labels);
+        result.put("donnees", montants);
+        return result;
+    }
     @GetMapping("/stats")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getStats(

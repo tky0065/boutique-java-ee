@@ -37,14 +37,14 @@ public class RoleInterceptor implements HandlerInterceptor {
         Utilisateur.Role userRole = (Utilisateur.Role) session.getAttribute("userRole");
 
         if (userRole == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/auth/login");
             return false;
         }
 
         boolean hasPermission = Arrays.asList(requiredRole.value()).contains(userRole);
 
         if (!hasPermission) {
-            response.sendRedirect(request.getContextPath() + "/erros/acces-refuse");
+            response.sendRedirect(request.getContextPath() + "/errors/acces-refuse");
             return false;
         }
 

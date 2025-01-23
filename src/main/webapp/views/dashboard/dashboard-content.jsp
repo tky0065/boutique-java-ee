@@ -159,14 +159,31 @@
                 </div>
             </div>
         </div>
-        <!-- Graphique des ventes -->
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Évolution des ventes</h5>
+        <!-- Graphiques -->
+        <div class="row">
+            <!-- Évolution des ventes -->
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Évolution des ventes</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="ventesChart"></canvas>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="ventesChart"></canvas>
+            </div>
+
+            <!-- Top 5 des produits vendus -->
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Top 5 des produits vendus</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 400px;">
+                            <canvas id="topProduitsChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -175,47 +192,107 @@
 </div>
 
 
-
-
-
 <!-- Scripts pour les graphiques -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+    // Données des graphiques reçues du serveur
+    const ventesData = ${ventesDataJson};
+    const topProduitsData = ${topProduitsDataJson};
+    let ventesChart;
+    let topProduitsChart;
+
     // Initialisation des graphiques
     document.addEventListener('DOMContentLoaded', function() {
-        initVentesChart();
+        initCharts();
         setupRefreshTimer();
     });
 
-    // Graphique des ventes
-    function initVentesChart() {
-        fetch('/dashboard/chart-data?type=ventes')
-            .then(response => response.json())
-            .then(data => {
-                const ctx = document.getElementById('ventesChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Ventes quotidiennes',
-                            data: data.data,
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
-                        }]
+    function initCharts() {
+        // Graphique des ventes
+        const ventesCtx = document.getElementById('ventesChart').getContext('2d');
+        ventesChart = new Chart(ventesCtx, {
+            type: 'line',
+            data: {
+                labels: ventesData.labels,
+                datasets: [{
+                    label: 'Montant des ventes',
+                    data: ventesData.donnees,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
                     },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toLocaleString('fr-FR') + ' FCFA';
                             }
                         }
                     }
-                });
-            });
-    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('fr-FR') + ' FCFA';
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
+        // Graphique des top produits
+        const topProduitsCtx = document.getElementById('topProduitsChart').getContext('2d');
+        topProduitsChart = new Chart(topProduitsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: topProduitsData.labels,
+                datasets: [{
+                    data: topProduitsData.donnees,
+                    backgroundColor: [
+                        '#4e73df',
+                        '#1cc88a',
+                        '#36b9cc',
+                        '#f6c23e',
+                        '#e74a3b'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return `${label}: ${value} unités`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
     // Rafraîchissement automatique
     function setupRefreshTimer() {
         setInterval(refreshDashboard, 300000); // 5 minutes
@@ -244,4 +321,4 @@
         }, 5000);
     });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
