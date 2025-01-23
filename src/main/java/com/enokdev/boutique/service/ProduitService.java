@@ -112,7 +112,5 @@ public class ProduitService {
                 .collect(Collectors.toList());
     }
 
-    public Integer getNombreProduitsEnAlerte() {
-        return produitRepository.countByQuantiteStockLessThanOrEqualToSeuilAlerte();
-    }
+
 }

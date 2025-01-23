@@ -89,4 +89,24 @@ public class LivraisonRepository {
                     .setParameter("fin", fin)
                     .getResultList();
     }
+
+    public List<Object[]> findLivraisonsParProduit(Long produitId, LocalDateTime debut, LocalDateTime fin) {
+        String jpql = """
+        SELECT 
+            ll.livraison.dateLivraison,
+            ll.livraison.nomFournisseur,
+            ll.quantite,
+            ll.prixUnitaire
+        FROM LigneLivraison ll 
+        WHERE ll.produit.id = :produitId 
+        AND ll.livraison.dateLivraison BETWEEN :debut AND :fin 
+        ORDER BY ll.livraison.dateLivraison DESC
+        """;
+
+        return em.createQuery(jpql, Object[].class)
+                .setParameter("produitId", produitId)
+                .setParameter("debut", debut)
+                .setParameter("fin", fin)
+                .getResultList();
+    }
 }

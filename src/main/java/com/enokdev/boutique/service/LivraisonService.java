@@ -1,8 +1,5 @@
 package com.enokdev.boutique.service;
-import com.enokdev.boutique.dto.LigneLivraisonDto;
-import com.enokdev.boutique.dto.LivraisonDto;
-import com.enokdev.boutique.dto.LivraisonResponse;
-import com.enokdev.boutique.dto.ProduitDto;
+import com.enokdev.boutique.dto.*;
 import com.enokdev.boutique.mapper.LivraisonMapper;
 
 import com.enokdev.boutique.mapper.ProduitMapper;
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -141,6 +139,22 @@ public class LivraisonService {
         }
     }
 
+    public List<LivraisonDetailDto> getLivraisonsParProduit(Long produitId, LocalDateTime debut, LocalDateTime fin) {
+        List<Object[]> resultats = livraisonRepository.findLivraisonsParProduit(produitId, debut, fin);
+        List<LivraisonDetailDto> livraisons = new ArrayList<>();
+
+        for (Object[] resultat : resultats) {
+            LivraisonDetailDto livraison = new LivraisonDetailDto();
+            livraison.setDateLivraison((LocalDateTime) resultat[0]);
+            livraison.setNomFournisseur((String) resultat[1]);
+            livraison.setQuantite((Integer) resultat[2]);
+            livraison.setPrixUnitaire((BigDecimal) resultat[3]);
+            livraisons.add(livraison);
+        }
+
+        return livraisons;
+    }
+
     // Méthode de mapping de Livraison vers LivraisonDto
     private LivraisonDto toDto(Livraison livraison) {
         LivraisonDto dto = new LivraisonDto();
@@ -164,6 +178,7 @@ public class LivraisonService {
         return LigneLivraisonDto.builder()
                 .id(ligne.getId())
                 .produitId(ligne.getProduit().getId())
+                .produit(ligne.getProduit() != null ? produitMapper.toDto(ligne.getProduit()) : null)
                 .quantite(ligne.getQuantite())
                 .prixUnitaire(ligne.getPrixUnitaire())
                 .montantTotal(ligne.getMontantTotal())

@@ -46,7 +46,7 @@ public class WebConfig implements WebMvcConfigurer {
         //  l'intercepteur de rôles
         registry.addInterceptor(roleInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/auth/**", "/resources/**", "/acces-refuse/**");
+                .excludePathPatterns("/auth/**", "/resources/**", "/errors/**");
     }
 
     @Override

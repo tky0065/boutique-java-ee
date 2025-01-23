@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -111,5 +112,26 @@ public class VenteRepository {
                 .setParameter("fin", fin)
                 .getResultList();
     }
+
+    public List<Object[]> findVentesParProduit(Long produitId, LocalDateTime debut, LocalDateTime fin) {
+        String jpql = """
+        SELECT 
+            lv.vente.dateVente,
+            lv.quantite,
+            lv.prixUnitaire,
+            (lv.quantite * lv.prixUnitaire) as montantTotal
+        FROM LigneVente lv 
+        WHERE lv.produit.id = :produitId 
+        AND lv.vente.dateVente BETWEEN :debut AND :fin 
+        ORDER BY lv.vente.dateVente DESC
+        """;
+
+        return em.createQuery(jpql, Object[].class)
+                .setParameter("produitId", produitId)
+                .setParameter("debut", debut)
+                .setParameter("fin", fin)
+                .getResultList();
+    }
+
 
 }

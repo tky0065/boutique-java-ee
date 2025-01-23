@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<div class="container-fluid mb-4">
+<div class="container-fluid mb-4 mt-4">
     <c:import url="../fragments/messages.jsp"/>
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -91,8 +91,7 @@
                                     <c:forEach items="${ventesRecentes}" var="vente">
                                         <tr>
                                             <td>
-                                                <fmt:formatDate value="${vente.dateVente}"
-                                                                pattern="dd/MM/yyyy HH:mm"/>
+                                                ${vente.dateVente}
                                             </td>
                                             <td>${vente.quantite}</td>
                                             <td>
@@ -126,8 +125,7 @@
                                     <c:forEach items="${livraisonsRecentes}" var="livraison">
                                         <tr>
                                             <td>
-                                                <fmt:formatDate value="${livraison.dateLivraison}"
-                                                                pattern="dd/MM/yyyy HH:mm"/>
+                                               ${livraison.dateLivraison}
                                             </td>
                                             <td>${livraison.nomFournisseur}</td>
                                             <td>${livraison.quantite}</td>
@@ -147,47 +145,10 @@
         </div>
     </div>
 
-    <!-- Graphique d'évolution du stock -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">Évolution du stock</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="stockChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialiser le graphique d'évolution du stock
-        const ctx = document.getElementById('stockChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ${stockDates},
-                datasets: [{
-                    label: 'Niveau de stock',
-                    data: ${stockNiveaux},
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    });
+
     // Auto-dismiss alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function () {

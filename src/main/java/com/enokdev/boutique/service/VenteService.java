@@ -1,9 +1,6 @@
 package com.enokdev.boutique.service;
 
-import com.enokdev.boutique.dto.LigneVenteDto;
-import com.enokdev.boutique.dto.ProduitDto;
-import com.enokdev.boutique.dto.VenteDto;
-import com.enokdev.boutique.dto.VenteResponse;
+import com.enokdev.boutique.dto.*;
 import com.enokdev.boutique.mapper.ProduitMapper;
 import com.enokdev.boutique.mapper.VenteMapper;
 import com.enokdev.boutique.model.LigneVente;
@@ -152,7 +149,7 @@ public class VenteService {
     private LigneVenteDto toLigneVenteDto(LigneVente ligneVente) {
         LigneVenteDto dto = new LigneVenteDto();
         dto.setId(ligneVente.getId());
-
+        dto.setProduit(produitMapper.toDto(ligneVente.getProduit()));
         dto.setProduitId(ligneVente.getProduit().getId());
         dto.setQuantite(ligneVente.getQuantite());
         dto.setPrixUnitaire(ligneVente.getPrixUnitaire());
@@ -217,4 +214,19 @@ public class VenteService {
     }
 
 
+    public List<VenteDetailDto> getVentesParProduit(Long produitId, LocalDateTime debut, LocalDateTime fin) {
+        List<Object[]> resultats = venteRepository.findVentesParProduit(produitId, debut, fin);
+        List<VenteDetailDto> ventes = new ArrayList<>();
+
+        for (Object[] resultat : resultats) {
+            VenteDetailDto vente = new VenteDetailDto();
+            vente.setDateVente((LocalDateTime) resultat[0]);
+            vente.setQuantite((Integer) resultat[1]);
+            vente.setPrixUnitaire((BigDecimal) resultat[2]);
+            vente.setMontantTotal((BigDecimal) resultat[3]);
+            ventes.add(vente);
+        }
+
+        return ventes;
+    }
 }

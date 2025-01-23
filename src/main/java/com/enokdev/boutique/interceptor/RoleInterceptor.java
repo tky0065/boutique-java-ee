@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -15,6 +17,8 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 public class RoleInterceptor implements HandlerInterceptor {
+
+    private static final Logger log = LogManager.getLogger(RoleInterceptor.class);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -44,7 +48,8 @@ public class RoleInterceptor implements HandlerInterceptor {
         boolean hasPermission = Arrays.asList(requiredRole.value()).contains(userRole);
 
         if (!hasPermission) {
-            response.sendRedirect(request.getContextPath() + "/errors/acces-refuse");
+
+            response.sendRedirect(request.getContextPath() + "/acces-refuse");
             return false;
         }
 

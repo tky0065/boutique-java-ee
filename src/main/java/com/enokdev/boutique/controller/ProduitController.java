@@ -1,8 +1,12 @@
 package com.enokdev.boutique.controller;
 
+import com.enokdev.boutique.dto.LivraisonDetailDto;
 import com.enokdev.boutique.dto.ProduitDto;
+import com.enokdev.boutique.dto.VenteDetailDto;
 import com.enokdev.boutique.model.Utilisateur;
+import com.enokdev.boutique.service.LivraisonService;
 import com.enokdev.boutique.service.ProduitService;
+import com.enokdev.boutique.service.VenteService;
 import com.enokdev.boutique.utils.RequiredPermission;
 import com.enokdev.boutique.utils.RequiredRole;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +19,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Controller
@@ -23,6 +29,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProduitController {
 
     private final ProduitService produitService;
+    private final VenteService venteService;
+    private final LivraisonService livraisonService;
 
     @GetMapping("/liste")
     public String listeProduits(Model model,
@@ -64,12 +72,28 @@ public class ProduitController {
     @GetMapping("/{id}")
     public String detailProduit(@PathVariable(name = "id") Long id, Model model) {
         try {
-            model.addAttribute("produit", produitService.getProduitById(id));
+            ProduitDto produit = produitService.getProduitById(id);
+            model.addAttribute("produit", produit);
+
+            // Récupérer les ventes récentes pour ce produit
+            LocalDateTime debut = LocalDateTime.now().minusDays(30); // 30 derniers jours
+            LocalDateTime fin = LocalDateTime.now();
+
+            List<VenteDetailDto> ventesRecentes = venteService.getVentesParProduit(id, debut, fin);
+
+            List<LivraisonDetailDto> livraisonsRecentes = livraisonService.getLivraisonsParProduit(id, debut, fin);
+
+            model.addAttribute("ventesRecentes", ventesRecentes);
+            model.addAttribute("livraisonsRecentes", livraisonsRecentes);
+
             return "produits/detail";
+
         } catch (Exception e) {
             return "redirect:/produits/liste";
         }
     }
+
+
 
     @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
     @GetMapping("/editer/{id}")
