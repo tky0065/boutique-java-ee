@@ -1,6 +1,7 @@
 package com.enokdev.boutique.controller;
 
 import com.enokdev.boutique.dto.LivraisonDetailDto;
+import com.enokdev.boutique.dto.PageResponse;
 import com.enokdev.boutique.dto.ProduitDto;
 import com.enokdev.boutique.dto.VenteDetailDto;
 import com.enokdev.boutique.model.Utilisateur;
@@ -33,13 +34,25 @@ public class ProduitController {
     private final LivraisonService livraisonService;
 
     @GetMapping("/liste")
-    public String listeProduits(Model model,
-                                @RequestParam(required = false, name = "search") String search) {
+    public String listeProduits(
+            Model model,
+            @RequestParam(required = false, name = "search") String search,
+            @RequestParam(defaultValue = "0",name = "page") int page,
+            @RequestParam(defaultValue = "5",name = "size") int size) {
+
+        PageResponse<ProduitDto> produits;
+
         if (search != null && !search.isEmpty()) {
-            model.addAttribute("produits", produitService.rechercherParNom(search));
+            produits = produitService.rechercherParNomPagine(search, page, size);
         } else {
-            model.addAttribute("produits", produitService.getAllProduits());
+            produits = produitService.getAllProduitsPagines(page, size);
         }
+
+        model.addAttribute("produits", produits);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", size);
+        model.addAttribute("search", search);
+
         return "produits/liste";
     }
 

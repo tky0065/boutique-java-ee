@@ -1,6 +1,7 @@
 package com.enokdev.boutique.service;
 
 import com.enokdev.boutique.dto.AlerteStockDto;
+import com.enokdev.boutique.dto.PageResponse;
 import com.enokdev.boutique.dto.ProduitDto;
 import com.enokdev.boutique.mapper.ProduitMapper;
 import com.enokdev.boutique.model.Produit;
@@ -52,10 +53,39 @@ public class ProduitService {
         produitMapper.toDto(produit);
     }
 
-    public List<ProduitDto> rechercherParNom(String nom) {
-        return produitRepository.findByNomContainingIgnoreCase(nom).stream()
+
+    public PageResponse<ProduitDto> getAllProduitsPagines(int page, int size) {
+        int startIndex = page * size;
+
+        // Récupérer le nombre total d'éléments
+        Long total = produitRepository.getTotalProduits();
+
+        // Récupérer une page d'éléments
+        List<Produit> produits = produitRepository.findAllWithPagination(startIndex, size);
+
+        // Convertir en DTOs
+        List<ProduitDto> produitDtos = produits.stream()
                 .map(produitMapper::toDto)
                 .collect(Collectors.toList());
+
+        return new PageResponse<>(produitDtos, page, size, total);
+    }
+
+    public PageResponse<ProduitDto> rechercherParNomPagine(String nom, int page, int size) {
+        int startIndex = page * size;
+
+        // Récupérer le nombre total d'éléments correspondant à la recherche
+        Long total = produitRepository.countByNomContainingIgnoreCase(nom);
+
+        // Récupérer une page d'éléments correspondant à la recherche
+        List<Produit> produits = produitRepository.findByNomContainingWithPagination(nom, startIndex, size);
+
+        // Convertir en DTOs
+        List<ProduitDto> produitDtos = produits.stream()
+                .map(produitMapper::toDto)
+                .collect(Collectors.toList());
+
+        return new PageResponse<>(produitDtos, page, size, total);
     }
 
     public void deleteProduit(Long id) {
@@ -68,13 +98,6 @@ public class ProduitService {
                 .collect(Collectors.toList());
     }
 
-    public void updateStock(Long produitId, int quantite) {
-        Produit produit = produitRepository.findById(produitId)
-                .orElseThrow(() -> new EntityNotFoundException("Produit non trouvé avec l'ID : " + produitId));
-
-        produit.setQuantiteStock(produit.getQuantiteStock() + quantite);
-        produitRepository.save(produit);
-    }
 
     public Long getTotalProduits() {
         return produitRepository.getTotalProduits();

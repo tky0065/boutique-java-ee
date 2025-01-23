@@ -18,10 +18,12 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
+                <input type="hidden" name="page" value="0">
+                <input type="hidden" name="size" value="${pageSize}">
                 <div class="col-md-6">
                     <div class="input-group">
                         <input type="text" class="form-control" name="search"
-                               placeholder="Rechercher un produit..." value="${param.search}">
+                               placeholder="Rechercher un produit..." value="${search}">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i>
                         </button>
@@ -60,7 +62,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach items="${produits}" var="produit">
+                    <c:forEach items="${produits.content}" var="produit">
                         <tr>
                             <td>${StringUtils.truncate(produit.nom,20)}</td>
 
@@ -98,6 +100,71 @@
             </div>
         </div>
     </div>
+
+<!-- Pagination -->
+<div class="card-footer">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            Affichage de ${produits.numberOfElements} sur ${produits.totalElements} produits
+        </div>
+
+        <nav>
+            <ul class="pagination mb-0">
+                <!-- Première page -->
+                <li class="page-item ${produits.first ? 'disabled' : ''}">
+                    <a class="page-link" href="?page=0&size=${pageSize}&search=${search}">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page précédente -->
+                <li class="page-item ${produits.first ? 'disabled' : ''}">
+                    <a class="page-link" href="?page=${currentPage - 1}&size=${pageSize}&search=${search}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- Pages -->
+                <c:forEach begin="${Math.max(0, currentPage - 2)}"
+                           end="${Math.min(produits.totalPages - 1, currentPage + 2)}"
+                           var="i">
+                    <li class="page-item ${currentPage == i ? 'active' : ''}">
+                        <a class="page-link" href="?page=${i}&size=${pageSize}&search=${search}">
+                                ${i + 1}
+                        </a>
+                    </li>
+                </c:forEach>
+
+                <!-- Page suivante -->
+                <li class="page-item ${produits.last ? 'disabled' : ''}">
+                    <a class="page-link" href="?page=${currentPage + 1}&size=${pageSize}&search=${search}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+
+                <!-- Dernière page -->
+                <li class="page-item ${produits.last ? 'disabled' : ''}">
+                    <a class="page-link" href="?page=${produits.totalPages - 1}&size=${pageSize}&search=${search}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sélecteur de taille de page -->
+        <div class="d-flex align-items-center">
+            <label class="me-2">Afficher</label>
+            <select class="form-select form-select-sm" style="width: auto;"
+                    onchange="window.location.href='?page=0&size=' + this.value + '&search=${search}'">
+                <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
+                <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
+            </select>
+            <label class="ms-2">par page</label>
+        </div>
+    </div>
+</div>
 
 
 <!-- Modal de confirmation de suppression -->
@@ -148,5 +215,12 @@
                 bsAlert.close();
             });
         }, 5000);
+    });
+    // gérer la recherche avec pagination
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const search = document.querySelector('input[name="search"]').value;
+        window.location.href = '?page=0&size=${pageSize}&search=' + encodeURIComponent(search);
     });
 </script>

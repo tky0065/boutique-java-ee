@@ -14,6 +14,27 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="<c:url value='/resources/css/dashboard.css'/>" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .page-link {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .form-select-sm {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .card-footer {
+            background-color: #f8f9fa;
+            padding: 0.75rem 1.25rem;
+        }
+    </style>
 
 </head>
 <body>

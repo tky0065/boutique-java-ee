@@ -90,4 +90,30 @@ public class ProduitRepository {
                 .getSingleResult();
         return count.intValue();
     }
+    public List<Produit> findAllWithPagination(int startIndex, int pageSize) {
+        return em.createQuery("SELECT p FROM Produit p ORDER BY p.nom", Produit.class)
+                .setFirstResult(startIndex)
+                .setMaxResults(pageSize)
+                .getResultList();
+    }
+
+    public List<Produit> findByNomContainingWithPagination(String nom, int startIndex, int pageSize) {
+        return em.createQuery(
+                        "SELECT p FROM Produit p WHERE LOWER(p.nom) LIKE LOWER(:nom) ORDER BY p.nom",
+                        Produit.class)
+                .setParameter("nom", "%" + nom + "%")
+                .setFirstResult(startIndex)
+                .setMaxResults(pageSize)
+                .getResultList();
+    }
+
+
+
+    public Long countByNomContainingIgnoreCase(String nom) {
+        return em.createQuery(
+                        "SELECT COUNT(p) FROM Produit p WHERE LOWER(p.nom) LIKE LOWER(:nom)",
+                        Long.class)
+                .setParameter("nom", "%" + nom + "%")
+                .getSingleResult();
+    }
 }
