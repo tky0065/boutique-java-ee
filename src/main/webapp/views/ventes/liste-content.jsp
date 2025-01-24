@@ -68,15 +68,23 @@
                             </td>
                             <td>${vente.utilisateurNomComplet}</td>
                             <td>
-                                <div class="btn-group">
+                                <div class="btn-group gap-1">
                                     <a href="<c:url value='/ventes/${vente.id}'/>"
-                                       class="btn btn-sm btn-info" title="Détails">
+                                       class="btn btn-sm btn-info rounded-circle" title="Détails">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <a href="<c:url value='/tickets/${vente.id}'/>"
-                                       class="btn btn-sm btn-secondary" title="Ticket">
+                                       class="btn btn-sm btn-secondary rounded-circle" title="Ticket">
                                         <i class="bi bi-receipt"></i>
                                     </a>
+                                    <a href="<c:url value='/ventes/editer/${vente.id}'/>"
+                                       class="btn btn-sm btn-warning rounded-circle" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger rounded-circle" title="Supprimer"
+                                            onclick="confirmerSuppression(${vente.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -87,8 +95,44 @@
         </div>
     </div>
 </div>
-
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="suppressionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation de suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer ce produit ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
+
+    let venteASupprimer = null;
+
+    function confirmerSuppression(venteId) {
+        venteASupprimer = venteId;
+        var suppressionModal = new bootstrap.Modal(document.getElementById('suppressionModal'));
+        suppressionModal.show();
+    }
+
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        if (venteASupprimer) {
+            // Créer un formulaire dynamiquement
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '<c:url value="/ventes/delete/"/>' + venteASupprimer;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
     document.addEventListener('DOMContentLoaded', function() {
         // Validation des dates
         const formFiltre = document.querySelector('form');

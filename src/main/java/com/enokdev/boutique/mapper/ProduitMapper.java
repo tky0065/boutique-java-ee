@@ -35,11 +35,7 @@ public class ProduitMapper {
                 .build();
     }
 
-    public List<ProduitDto> toDtoList(List<Produit> produits) {
-        return produits.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
+
 
     public void updateEntityFromDto(ProduitDto dto, Produit produit) {
         if (dto == null || produit == null) return;

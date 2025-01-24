@@ -48,18 +48,7 @@ public class UtilisateurRepository {
         }
     }
 
-    public Optional<Utilisateur> findByIdentifiantAndMotDePasse(String identifiant, String motDePasse) {
-        try {
-            TypedQuery<Utilisateur> query = em.createQuery(
-                    "SELECT u FROM Utilisateur u WHERE u.identifiant = :identifiant AND u.motDePasse = :motDePasse",
-                    Utilisateur.class);
-            query.setParameter("identifiant", identifiant);
-            query.setParameter("motDePasse", motDePasse);
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
-    }
+
 
     public void delete(Utilisateur utilisateur) {
         em.remove(em.contains(utilisateur) ? utilisateur : em.merge(utilisateur));

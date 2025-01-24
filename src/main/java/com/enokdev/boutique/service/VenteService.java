@@ -2,7 +2,7 @@ package com.enokdev.boutique.service;
 
 import com.enokdev.boutique.dto.*;
 import com.enokdev.boutique.mapper.ProduitMapper;
-import com.enokdev.boutique.mapper.VenteMapper;
+
 import com.enokdev.boutique.model.LigneVente;
 import com.enokdev.boutique.model.Produit;
 import com.enokdev.boutique.model.Utilisateur;
@@ -128,6 +128,101 @@ public class VenteService {
             throw new RuntimeException("Erreur lors de la sauvegarde de la vente: " + e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public VenteDto update(VenteDto venteDto) {
+        log.info("Début de la mise à jour de la vente ID: {}", venteDto.getId());
+
+        try {
+            // 1. Vérification des données
+            if (venteDto.getLignesVente() == null || venteDto.getLignesVente().isEmpty()) {
+                log.error("Tentative de mise à jour d'une vente sans lignes");
+                throw new IllegalArgumentException("La vente doit contenir au moins une ligne");
+            }
+
+            // 2. Récupération de la vente existante
+            Vente vente = venteRepository.findById(venteDto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Vente non trouvée avec l'ID : " + venteDto.getId()));
+
+            // 3. Récupération de l'utilisateur
+            log.info("Recherche de l'utilisateur ID: {}", venteDto.getUtilisateurId());
+            Utilisateur utilisateur = utilisateurRepository.findById(venteDto.getUtilisateurId())
+                    .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé: " + venteDto.getUtilisateurId()));
+            vente.setUtilisateur(utilisateur);
+
+            // 4. Gestion des anciennes lignes
+            // Restaurer le stock pour les anciennes lignes
+            for (LigneVente ancienneLigne : vente.getLignesVente()) {
+                Produit produit = ancienneLigne.getProduit();
+                produit.setQuantiteStock(produit.getQuantiteStock() + ancienneLigne.getQuantite());
+                produitService.saveProduit(produitMapper.toDto(produit));
+                log.info("Stock restauré pour le produit {}: +{}", produit.getNom(), ancienneLigne.getQuantite());
+            }
+
+            // Supprimer toutes les anciennes lignes
+            vente.getLignesVente().clear();
+            log.info("Anciennes lignes de vente supprimées");
+
+            // 5. Traitement des nouvelles lignes
+            BigDecimal montantTotal = BigDecimal.ZERO;
+            log.info("Traitement de {} nouvelles lignes de vente", venteDto.getLignesVente().size());
+
+            for (LigneVenteDto ligneDto : venteDto.getLignesVente()) {
+                log.info("Traitement de la ligne pour le produit ID: {}", ligneDto.getProduitId());
+
+                // Récupération du produit
+                Produit produit = produitService.findById(ligneDto.getProduitId()).map(produitMapper::toEntity)
+                        .orElseThrow(() -> new EntityNotFoundException("Produit non trouvé: " + ligneDto.getProduitId()));
+
+                // Vérification du stock
+                if (produit.getQuantiteStock() < ligneDto.getQuantite()) {
+                    log.error("Stock insuffisant pour le produit {} : disponible={}, demandé={}",
+                            produit.getNom(), produit.getQuantiteStock(), ligneDto.getQuantite());
+                    throw new IllegalStateException("Stock insuffisant pour le produit: " + produit.getNom());
+                }
+
+                // Création de la nouvelle ligne
+                LigneVente nouvelleLigne = new LigneVente();
+                nouvelleLigne.setProduit(produit);
+                nouvelleLigne.setVente(vente);
+                nouvelleLigne.setQuantite(ligneDto.getQuantite());
+                nouvelleLigne.setPrixUnitaire(produit.getPrixUnitaire());
+                nouvelleLigne.setMontantTotal(produit.getPrixUnitaire().multiply(BigDecimal.valueOf(ligneDto.getQuantite())));
+
+                vente.getLignesVente().add(nouvelleLigne);
+                montantTotal = montantTotal.add(nouvelleLigne.getMontantTotal());
+
+                // Mise à jour du stock
+                produit.setQuantiteStock(produit.getQuantiteStock() - ligneDto.getQuantite());
+                produitService.saveProduit(ProduitDto.builder()
+                        .id(produit.getId())
+                        .nom(produit.getNom())
+                        .description(produit.getDescription())
+                        .prixUnitaire(produit.getPrixUnitaire())
+                        .quantiteStock(produit.getQuantiteStock())
+                        .seuilAlerte(produit.getSeuilAlerte())
+                        .build());
+
+                log.info("Stock mis à jour pour le produit {}: -{}", produit.getNom(), ligneDto.getQuantite());
+            }
+
+            // 6. Mise à jour des informations de la vente
+            vente.setMontantTotal(montantTotal);
+            vente.setNomClient(venteDto.getNomClient());
+            log.info("Montant total calculé: {}", montantTotal);
+
+            // 7. Sauvegarde de la vente modifiée
+            log.info("Sauvegarde de la vente modifiée en base de données...");
+            Vente venteSauvegardee = venteRepository.save(vente);
+            log.info("Vente mise à jour avec succès, ID: {}", venteSauvegardee.getId());
+
+            return toDto(venteSauvegardee);
+
+        } catch (Exception e) {
+            log.error("Erreur lors de la mise à jour de la vente", e);
+            throw new RuntimeException("Erreur lors de la mise à jour de la vente: " + e.getMessage(), e);
+        }
+    }
     // Méthode de mapping de Vente vers VenteDto
     private VenteDto toDto(Vente vente) {
         VenteDto dto = new VenteDto();
@@ -228,5 +323,11 @@ public class VenteService {
         }
 
         return ventes;
+    }
+
+    public void deleteVente(Long id) {
+        venteRepository.findById(id)
+                .ifPresent(venteRepository::delete);
+
     }
 }

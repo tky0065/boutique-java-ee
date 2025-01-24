@@ -1,5 +1,7 @@
 package com.enokdev.boutique.controller;
 
+import com.enokdev.boutique.dto.LivraisonDto;
+import com.enokdev.boutique.dto.LivraisonResponse;
 import com.enokdev.boutique.dto.VenteDto;
 import com.enokdev.boutique.dto.VenteResponse;
 import com.enokdev.boutique.model.Utilisateur;
@@ -8,6 +10,7 @@ import com.enokdev.boutique.service.TicketService;
 import com.enokdev.boutique.service.VenteService;
 import com.enokdev.boutique.utils.RequiredPermission;
 import com.enokdev.boutique.utils.RequiredRole;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -117,11 +120,55 @@ public class VenteController {
             VenteResponse vente = venteService.getVenteById(id);
             byte[] ticket = ticketService.generateTicket(vente);
 
+
             response.setContentType("text/plain");
+
+            response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Disposition", "attachment; filename=ticket-" + id + ".txt");
             response.getOutputStream().write(ticket);
         } catch (Exception e) {
             // Gérer l'erreur
+        }
+    }
+    @GetMapping("/editer/{id}")
+    public String editerVenteForm(@PathVariable(name = "id") Long id, Model model) {
+        try {
+
+            VenteResponse vente = venteService.getVenteById(id);
+            model.addAttribute("vente", vente);
+            model.addAttribute("produits", produitService.getAllProduits());
+            model.addAttribute("isEdition", true);
+
+            return "ventes/form";
+        } catch (Exception e) {
+            return "redirect:/ventes/liste";
+        }
+    }
+
+    @PostMapping("/editer/{id}")
+    public String editerVente(@PathVariable(name = "id") Long id,
+                                  @Valid @ModelAttribute("vente") VenteDto venteDto,
+                                  BindingResult result,
+                                  HttpSession session,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            model.addAttribute("produits", produitService.getAllProduits());
+            return "ventes/form";
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            venteDto.setUtilisateurId(userId);
+            venteDto.setDateVente(LocalDateTime.now());
+
+            VenteDto saved = venteService.update(venteDto);
+            redirectAttributes.addFlashAttribute("success", "Vente enregistrée avec succès");
+
+            return "redirect:/ventes/" + saved.getId();
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour de la Vente");
+            return "redirect:/ventes/editer/" + id;
         }
     }
 
@@ -133,6 +180,28 @@ public class VenteController {
         LocalDateTime debut = dateDebut.atStartOfDay();
         LocalDateTime fin = dateFin.atTime(23, 59, 59);
         return ResponseEntity.ok(venteService.getVentesParPeriode(debut, fin));
+    }
+
+    @RequiredPermission("VENTE_SUPPRIMER")
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
+    @PostMapping("/delete/{id}")
+    public String supprimerVente(@PathVariable(name = "id") Long id,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            var  vente = venteService.getVenteById(id);
+            if (vente != null) {
+                venteService.deleteVente(id);
+            }
+            redirectAttributes.addFlashAttribute("success",
+                    "Vente supprimé avec succès");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Vente non trouvé");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de la suppression: " + e.getMessage());
+        }
+        return "redirect:/ventes";
     }
 }
 

@@ -8,19 +8,22 @@
 
     <div class="card shadow">
         <div class="card-header">
-            <h3 class="card-title mb-0">Nouvelle Vente</h3>
+            <h3 class="card-title mb-0">${isEdition ? 'Modifier' : 'Nouvelle'} Vente</h3>
         </div>
         <div class="card-body">
-            <form id="venteForm" action="<c:url value='/ventes/nouvelle'/>" method="post">
-                <!-- Champs cachés pour les informations essentielles -->
+            <form id="venteForm" action="<c:url value='${isEdition ? "/ventes/editer/".concat(vente.id) : "/ventes/nouvelle"}'/>" method="post">
+                <!-- Champs cachés -->
                 <input type="hidden" name="utilisateurId" value="${sessionScope.userId}">
-                <input type="hidden" name="dateVente" value="${LocalDateTime.now()}">
                 <input type="hidden" name="montantTotal" id="montantTotalInput">
+                <c:if test="${isEdition}">
+                    <input type="hidden" name="id" value="${vente.id}">
+                </c:if>
 
                 <!-- Information client -->
                 <div class="mb-4">
                     <label for="client" class="form-label">Client</label>
                     <input type="text" class="form-control" id="client" name="nomClient"
+                           value="${vente.nomClient}"
                            placeholder="Nom du client">
                 </div>
 
@@ -62,7 +65,7 @@
                         <i class="bi bi-x-circle"></i> Annuler
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg"></i> Enregistrer
+                        <i class="bi bi-check-lg"></i> ${isEdition ? 'Modifier' : 'Enregistrer'}
                     </button>
                 </div>
             </form>
@@ -106,8 +109,56 @@
     </tr>
 </template>
 
+
 <script>
-    let indexProduit = 0;
+    let indexProduit = ${isEdition ? vente.lignesVente.size() : 0};
+
+    function initExistingLines() {
+        console.log("Initializing existing lines");
+        const tbody = document.querySelector('#produitsTable tbody');
+        tbody.innerHTML = ''; // Vider le tbody
+
+        <c:if test="${not empty vente.lignesVente}">
+        <c:forEach items="${vente.lignesVente}" var="ligne" varStatus="status">
+        addNewLine({
+            produitId: '${ligne.produitId}',
+            prixUnitaire: '${ligne.prixUnitaire}',
+            quantite: '${ligne.quantite}',
+            index: ${status.index}
+        });
+        </c:forEach>
+        </c:if>
+    }
+
+    function addNewLine(data = null) {
+        const template = document.getElementById('ligneProduitTemplate');
+        const tbody = document.querySelector('#produitsTable tbody');
+        const clone = template.content.cloneNode(true);
+        const row = clone.querySelector('tr');
+
+        row.innerHTML = row.innerHTML.replaceAll('{index}', data ? data.index : indexProduit);
+        tbody.appendChild(clone);
+        const newRow = tbody.lastElementChild;
+
+        if (data) {
+            const select = newRow.querySelector('.produit-select');
+            select.value = data.produitId;
+
+            const prixInput = newRow.querySelector('.prix-unitaire');
+            const prixHiddenInput = newRow.querySelector('.prix-unitaire-input');
+            prixInput.value = data.prixUnitaire;
+            prixHiddenInput.value = data.prixUnitaire;
+
+            const quantiteInput = newRow.querySelector('.quantite');
+            quantiteInput.value = data.quantite;
+        }
+
+        attachEventHandlers(newRow);
+        updateLigneTotal(newRow);
+
+        if (!data) indexProduit++;
+        return newRow;
+    }
 
     // Ajouter une ligne de produit
     document.getElementById('ajouterProduit').addEventListener('click', function() {
@@ -217,6 +268,10 @@
     });
     // Auto-dismiss alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
+        if (${isEdition == true}) {
+            initExistingLines();
+        }
+        updateTotal();
         setTimeout(function () {
             var alerts = document.querySelectorAll('.alert');
             alerts.forEach(function (alert) {

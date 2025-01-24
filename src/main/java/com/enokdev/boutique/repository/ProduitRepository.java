@@ -32,13 +32,7 @@ public class ProduitRepository {
                 .getResultList();
     }
 
-    public List<Produit> findByNomContainingIgnoreCase(String nom) {
-        TypedQuery<Produit> query = em.createQuery(
-                "SELECT p FROM Produit p WHERE LOWER(p.nom) LIKE LOWER(:nom) ORDER BY p.nom",
-                Produit.class);
-        query.setParameter("nom", "%" + nom + "%");
-        return query.getResultList();
-    }
+
 
     public void delete(Produit produit) {
         em.remove(em.contains(produit) ? produit : em.merge(produit));
@@ -55,21 +49,8 @@ public class ProduitRepository {
                 .getResultList();
     }
 
-    public List<Produit> findByQuantiteStockLessThan(Integer quantite) {
-        TypedQuery<Produit> query = em.createQuery(
-                "SELECT p FROM Produit p WHERE p.quantiteStock < :quantite ORDER BY p.quantiteStock",
-                Produit.class);
-        query.setParameter("quantite", quantite);
-        return query.getResultList();
-    }
 
-    public void updateStock(Long id, Integer quantite) {
-        em.createQuery(
-                        "UPDATE Produit p SET p.quantiteStock = p.quantiteStock + :quantite WHERE p.id = :id")
-                .setParameter("quantite", quantite)
-                .setParameter("id", id)
-                .executeUpdate();
-    }
+
 
     public Long getTotalProduits() {
         return  em.createQuery("SELECT COUNT(p) FROM Produit p", Long.class)
@@ -83,13 +64,6 @@ public class ProduitRepository {
                 .getResultList();
     }
 
-    public Integer countByQuantiteStockLessThanOrEqualToSeuilAlerte() {
-        Long count = em.createQuery(
-                        "SELECT COUNT(p) FROM Produit p WHERE p.quantiteStock <= p.seuilAlerte",
-                        Long.class)
-                .getSingleResult();
-        return count.intValue();
-    }
     public List<Produit> findAllWithPagination(int startIndex, int pageSize) {
         return em.createQuery("SELECT p FROM Produit p ORDER BY p.nom", Produit.class)
                 .setFirstResult(startIndex)
