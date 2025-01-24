@@ -10,7 +10,7 @@
             <h3 class="card-title mb-0">Nouvelle Livraison</h3>
         </div>
         <div class="card-body">
-            <form id="livraisonForm" action="<c:url value='/livraisons/nouvelle'/>" method="post">
+            <form id="livraisonForm"  action="<c:url value='${isEdition ? "/livraisons/editer/".concat(livraison.id) : "/livraisons/nouvelle"}'/>" method="post">
                 <!-- Information fournisseur -->
                 <div class="mb-4">
                     <label for="nomFournisseur" class="form-label">Fournisseur</label>
@@ -19,7 +19,10 @@
                            placeholder="Nom du fournisseur"
                            value="${livraison.nomFournisseur}">
                 </div>
-
+                <!-- Si c'est une édition, ajoutons l'ID -->
+                <c:if test="${isEdition}">
+                    <input type="hidden" name="id" value="${livraison.id}">
+                </c:if>
                 <!-- Tableau des produits -->
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -104,19 +107,77 @@
 </template>
 
 <script>
+
+
+    // Déclaration des variables globales
     let indexProduit = 0;
 
-    // Ajouter une ligne de produit
-    document.getElementById('ajouterProduit').addEventListener('click', function() {
+    // Fonction d'initialisation des lignes existantes
+    function initExistingLines() {
+        const tbody = document.querySelector('#produitsTable tbody');
+        tbody.innerHTML = ''; // Vider le tbody
+
+        <c:if test="${not empty livraison.lignesLivraison}">
+        console.log("Initializing existing lines");
+        <c:forEach items="${livraison.lignesLivraison}" var="ligne" varStatus="status">
+        addNewLine({
+            produitId: '${ligne.produitId}',
+            prixUnitaire: '${ligne.prixUnitaire}',
+            quantite: '${ligne.quantite}',
+            index: ${status.index}
+        });
+        </c:forEach>
+        indexProduit = ${livraison.lignesLivraison.size()};
+        </c:if>
+    }
+
+    // Fonction pour ajouter une nouvelle ligne
+    function addNewLine(data = null) {
         const template = document.getElementById('ligneProduitTemplate');
         const tbody = document.querySelector('#produitsTable tbody');
         const clone = template.content.cloneNode(true);
+        const row = clone.querySelector('tr');
 
-        clone.querySelector('tr').innerHTML = clone.querySelector('tr').innerHTML
-            .replace(/{index}/g, indexProduit++);
+        // Remplacer tous les {index}
+        row.innerHTML = row.innerHTML.replaceAll('{index}', data ? data.index : indexProduit);
 
         tbody.appendChild(clone);
-        attachEventHandlers(tbody.lastElementChild);
+        const newRow = tbody.lastElementChild;
+
+        if (data) {
+            // Sélectionner le produit
+            const select = newRow.querySelector('.produit-select');
+            select.value = data.produitId;
+
+            // Définir le prix unitaire
+            const prixInput = newRow.querySelector('.prix-unitaire');
+            prixInput.value = data.prixUnitaire;
+
+            // Définir la quantité
+            const quantiteInput = newRow.querySelector('.quantite');
+            quantiteInput.value = data.quantite;
+        }
+
+        attachEventHandlers(newRow);
+        updateLigneTotal(newRow);
+
+        if (!data) {
+            indexProduit++;
+        }
+
+        return newRow;
+    }
+    // Mettre à jour le total général
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('.ligne-total').forEach(el => {
+            total += parseMoneyFCFA(el.textContent);
+        });
+        document.getElementById('totalGeneral').textContent = formatMoneyFCFA(total);
+    }
+    // Gestionnaire d'événement pour le bouton Ajouter
+    document.getElementById('ajouterProduit').addEventListener('click', function() {
+        addNewLine();
         updateTotal();
     });
 
@@ -150,18 +211,8 @@
         const prix = parseFloat(row.querySelector('.prix-unitaire').value) || 0;
         const quantite = parseInt(row.querySelector('.quantite').value) || 0;
         const total = prix * quantite;
-
         row.querySelector('.ligne-total').textContent = formatMoneyFCFA(total);
         updateTotal();
-    }
-
-    // Mettre à jour le total général
-    function updateTotal() {
-        let total = 0;
-        document.querySelectorAll('.ligne-total').forEach(el => {
-            total += parseMoneyFCFA(el.textContent);
-        });
-        document.getElementById('totalGeneral').textContent = formatMoneyFCFA(total);
     }
 
     // Formater un montant en FCFA
@@ -199,8 +250,15 @@
             alert('Veuillez remplir tous les champs pour chaque produit');
         }
     });
-    // Auto-dismiss alerts after 5 seconds
+    // Initialisation au chargement de la page
     document.addEventListener('DOMContentLoaded', function() {
+        console.log("Page loaded, isEdition: ${isEdition}");
+        if (${isEdition == true}) {
+            initExistingLines();
+        }
+        updateTotal();
+
+        // Auto-dismiss alerts
         setTimeout(function () {
             var alerts = document.querySelectorAll('.alert');
             alerts.forEach(function (alert) {

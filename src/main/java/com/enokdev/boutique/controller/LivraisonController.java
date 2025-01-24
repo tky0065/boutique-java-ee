@@ -1,8 +1,13 @@
 package com.enokdev.boutique.controller;
 
 import com.enokdev.boutique.dto.LivraisonDto;
+import com.enokdev.boutique.dto.LivraisonResponse;
+import com.enokdev.boutique.model.Utilisateur;
 import com.enokdev.boutique.service.LivraisonService;
 import com.enokdev.boutique.service.ProduitService;
+import com.enokdev.boutique.utils.RequiredPermission;
+import com.enokdev.boutique.utils.RequiredRole;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -88,8 +93,13 @@ public class LivraisonController {
     @GetMapping("/editer/{id}")
     public String editerLivraisonForm(@PathVariable(name = "id") Long id, Model model) {
         try {
-            model.addAttribute("livraison", livraisonService.getLivraisonById(id));
+
+            LivraisonResponse livraison = livraisonService.getLivraisonById(id);
+            model.addAttribute("livraison", livraison);
             model.addAttribute("produits", produitService.getAllProduits());
+            model.addAttribute("isEdition", true);
+
+
             return "livraisons/form";
         } catch (Exception e) {
             return "redirect:/livraisons";
@@ -100,6 +110,7 @@ public class LivraisonController {
     public String editerLivraison(@PathVariable(name = "id") Long id,
                                   @Valid @ModelAttribute("livraison") LivraisonDto livraisonDto,
                                   BindingResult result,
+                                  HttpSession session,
                                   Model model,
                                   RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
@@ -108,45 +119,44 @@ public class LivraisonController {
         }
 
         try {
-            livraisonDto.setId(id);
-            LivraisonDto updated = livraisonService.saveLivraison(livraisonDto);
-            redirectAttributes.addFlashAttribute("success", "Livraison mise à jour avec succès");
-            return "redirect:/livraisons/" + updated.getId();
+            Long userId = (Long) session.getAttribute("userId");
+            livraisonDto.setUtilisateurId(userId);
+            livraisonDto.setDateLivraison(LocalDateTime.now());
+
+            LivraisonDto saved = livraisonService.updateLivraison(livraisonDto);
+            redirectAttributes.addFlashAttribute("success", "Livraison enregistrée avec succès");
+
+            return "redirect:/livraisons/" + saved.getId();
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour de la livraison");
             return "redirect:/livraisons/editer/" + id;
         }
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseBody
-    public ResponseEntity<Void> supprimerLivraison(@PathVariable(name = "id") Long id) {
+
+
+    @RequiredPermission("LIVRAISON_SUPPRIMER")
+    @RequiredRole({Utilisateur.Role.ADMIN, Utilisateur.Role.GESTIONNAIRE_STOCK})
+    @PostMapping("/delete/{id}")
+    public String supprimerLivraison(@PathVariable(name = "id") Long id,
+                                   RedirectAttributes redirectAttributes) {
         try {
-            livraisonService.deleteLivraison(id);
-            return ResponseEntity.ok().build();
+            var  produict = livraisonService.getLivraisonById(id);
+            if (produict != null) {
+                livraisonService.deleteLivraison(id);
+            }
+            redirectAttributes.addFlashAttribute("success",
+                    "Livraison supprimé avec succès");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Livraison non trouvé");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            redirectAttributes.addFlashAttribute("error",
+                    "Erreur lors de la suppression: " + e.getMessage());
         }
+        return "redirect:/livraisons";
     }
 
-
-//    @GetMapping("/api/livraisons-fournisseur")
-//    @ResponseBody
-//    public ResponseEntity<List<LivraisonDto>> getLivraisonsFournisseur(
-//            @RequestParam String fournisseur,
-//            @RequestParam(required = false) LocalDate dateDebut,
-//            @RequestParam(required = false) LocalDate dateFin) {
-//        try {
-//            if (dateDebut != null && dateFin != null) {
-//                return ResponseEntity.ok(livraisonService.getLivraisonsParFournisseurEtPeriode(
-//                        fournisseur, dateDebut.atStartOfDay(), dateFin.atTime(23, 59, 59)));
-//            } else {
-//                return ResponseEntity.ok(livraisonService.getLivraisonsParFournisseur(fournisseur));
-//            }
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
 
     @GetMapping("/imprimer/{id}")
     public String imprimerBonLivraison(@PathVariable(name = "id") Long id, Model model) {

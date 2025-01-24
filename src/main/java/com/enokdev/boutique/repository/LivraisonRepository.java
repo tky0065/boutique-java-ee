@@ -47,25 +47,8 @@ public class LivraisonRepository {
         return query.getResultList();
     }
 
-    public List<Livraison> findByFournisseur(String fournisseur) {
-        TypedQuery<Livraison> query = em.createQuery(
-                "SELECT l FROM Livraison l WHERE LOWER(l.nomFournisseur) LIKE LOWER(:fournisseur) ORDER BY l.dateLivraison DESC",
-                Livraison.class);
-        query.setParameter("fournisseur", "%" + fournisseur + "%");
-        return query.getResultList();
-    }
 
-    public List<Livraison> findByFournisseurAndDateLivraisonBetween(
-            String fournisseur, LocalDateTime debut, LocalDateTime fin) {
-        TypedQuery<Livraison> query = em.createQuery(
-                "SELECT l FROM Livraison l WHERE LOWER(l.nomFournisseur) LIKE LOWER(:fournisseur) " +
-                        "AND l.dateLivraison BETWEEN :debut AND :fin ORDER BY l.dateLivraison DESC",
-                Livraison.class);
-        query.setParameter("fournisseur", "%" + fournisseur + "%");
-        query.setParameter("debut", debut);
-        query.setParameter("fin", fin);
-        return query.getResultList();
-    }
+
 
     public BigDecimal getTotalLivraisonsParPeriode(LocalDateTime debut, LocalDateTime fin) {
         TypedQuery<BigDecimal> query = em.createQuery(

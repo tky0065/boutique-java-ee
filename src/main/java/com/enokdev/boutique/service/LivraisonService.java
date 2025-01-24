@@ -1,6 +1,5 @@
 package com.enokdev.boutique.service;
 import com.enokdev.boutique.dto.*;
-import com.enokdev.boutique.mapper.LivraisonMapper;
 
 import com.enokdev.boutique.mapper.ProduitMapper;
 import com.enokdev.boutique.model.LigneLivraison;
@@ -31,7 +30,7 @@ import java.util.stream.Collectors;
 public class LivraisonService {
 
     private final LivraisonRepository livraisonRepository;
-    private final LivraisonMapper livraisonMapper;
+
     private final ProduitService produitService;
     private final UtilisateurRepository utilisateurRepository;
     private final Logger log = LogManager.getLogger();
@@ -77,6 +76,8 @@ public class LivraisonService {
                 log.error("Tentative de sauvegarde d'une livraison sans lignes");
                 throw new IllegalArgumentException("La livraison doit contenir au moins une ligne");
             }
+
+
 
             // 2. Création de la livraison
             Livraison livraison = new Livraison();
@@ -139,6 +140,86 @@ public class LivraisonService {
         }
     }
 
+    @Transactional
+    public LivraisonDto updateLivraison(LivraisonDto livraisonDto) {
+        try {
+            // 1. Vérification des données
+            if (livraisonDto.getLignesLivraison() == null || livraisonDto.getLignesLivraison().isEmpty()) {
+                throw new IllegalArgumentException("La livraison doit contenir au moins une ligne");
+            }
+
+            // 2. Récupération de la livraison existante
+            Livraison livraison = livraisonRepository.findById(livraisonDto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Livraison non trouvée avec l'ID : " + livraisonDto.getId()));
+
+            // 3. Mise à jour des informations de base
+            livraison.setNomFournisseur(livraisonDto.getNomFournisseur());
+
+            // 4. Récupération de l'utilisateur
+            Utilisateur utilisateur = utilisateurRepository.findById(livraisonDto.getUtilisateurId())
+                    .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé: " + livraisonDto.getUtilisateurId()));
+            livraison.setUtilisateur(utilisateur);
+
+            // 5. Gestion des anciennes lignes
+            // Annuler les modifications de stock pour les anciennes lignes
+            for (LigneLivraison ancienneLigne : livraison.getLignesLivraison()) {
+                Produit produit = ancienneLigne.getProduit();
+                produit.setQuantiteStock(produit.getQuantiteStock() - ancienneLigne.getQuantite());
+                produitService.saveProduit(produitMapper.toDto(produit));
+            }
+
+            // Supprimer toutes les anciennes lignes
+            livraison.getLignesLivraison().clear();
+
+            // 6. Traitement des nouvelles lignes
+            BigDecimal montantTotal = BigDecimal.ZERO;
+            log.info("Traitement de {} nouvelles lignes de livraison", livraisonDto.getLignesLivraison().size());
+
+            for (LigneLivraisonDto ligneDto : livraisonDto.getLignesLivraison()) {
+                log.info("Traitement de la ligne pour le produit ID: {}", ligneDto.getProduitId());
+
+                // Récupération du produit
+                Produit produit = produitService.findById(ligneDto.getProduitId()).map(produitMapper::toEntity)
+                        .orElseThrow(() -> new EntityNotFoundException("Produit non trouvé: " + ligneDto.getProduitId()));
+
+                // Création de la nouvelle ligne
+                LigneLivraison nouvelleLigne = new LigneLivraison();
+                nouvelleLigne.setProduit(produit);
+                nouvelleLigne.setLivraison(livraison);
+                nouvelleLigne.setQuantite(ligneDto.getQuantite());
+                nouvelleLigne.setPrixUnitaire(ligneDto.getPrixUnitaire());
+                nouvelleLigne.setMontantTotal(ligneDto.getPrixUnitaire().multiply(BigDecimal.valueOf(ligneDto.getQuantite())));
+
+                livraison.getLignesLivraison().add(nouvelleLigne);
+                montantTotal = montantTotal.add(nouvelleLigne.getMontantTotal());
+
+                // Mise à jour du stock avec la nouvelle quantité
+                produit.setQuantiteStock(produit.getQuantiteStock() + ligneDto.getQuantite());
+                produitService.saveProduit(ProduitDto.builder()
+                        .id(produit.getId())
+                        .nom(produit.getNom())
+                        .description(produit.getDescription())
+                        .prixUnitaire(produit.getPrixUnitaire())
+                        .quantiteStock(produit.getQuantiteStock())
+                        .seuilAlerte(produit.getSeuilAlerte())
+                        .build());
+            }
+
+            livraison.setMontantTotal(montantTotal);
+            log.info("Montant total calculé pour la livraison: {}", montantTotal);
+
+            // 7. Sauvegarde de la livraison modifiée
+            log.info("Sauvegarde de la livraison modifiée en base de données...");
+            Livraison livraisonSauvegardee = livraisonRepository.save(livraison);
+            log.info("Livraison mise à jour avec succès, ID: {}", livraisonSauvegardee.getId());
+
+            return toDto(livraisonSauvegardee);
+
+        } catch (Exception e) {
+            log.error("Erreur lors de la mise à jour de la livraison", e);
+            throw new RuntimeException("Erreur lors de la mise à jour de la livraison: " + e.getMessage(), e);
+        }
+    }
     public List<LivraisonDetailDto> getLivraisonsParProduit(Long produitId, LocalDateTime debut, LocalDateTime fin) {
         List<Object[]> resultats = livraisonRepository.findLivraisonsParProduit(produitId, debut, fin);
         List<LivraisonDetailDto> livraisons = new ArrayList<>();
@@ -194,6 +275,8 @@ public class LivraisonService {
     }
 
     public void deleteLivraison(Long id) {
+        livraisonRepository.findById(id)
+                .ifPresent(livraisonRepository::delete);
 
     }
 
