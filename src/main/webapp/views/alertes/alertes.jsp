@@ -93,7 +93,9 @@
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Scripts -->
+<script src="<c:url value='/resources/js/popper.min.js'/>"></script>
+<script src="<c:url value='/resources/js/bootstrap.bundle.min.js'/>"></script>
 <script>
     // Auto-dismiss alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {

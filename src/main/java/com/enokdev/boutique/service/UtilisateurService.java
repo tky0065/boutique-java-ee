@@ -39,12 +39,16 @@ public class UtilisateurService {
 
     public void saveUtilisateur(UtilisateurDto utilisateurDto) {
         Utilisateur utilisateur = new Utilisateur();
+        if (utilisateurDto.getRole() == null) {
+            utilisateurDto.setRole(Utilisateur.Role.ADMIN);
+        }
         utilisateur.setNumeroMatricule(utilisateurDto.getNumeroMatricule());
         utilisateur.setNom(utilisateurDto.getNom());
         utilisateur.setPrenom(utilisateurDto.getPrenom());
         utilisateur.setSexe(Utilisateur.Sexe.valueOf(utilisateurDto.getSexe()));
         utilisateur.setDateNaissance(Date.valueOf(utilisateurDto.getDateNaissance()).toLocalDate()); // Conversion de LocalDate en Date
         utilisateur.setIdentifiant(utilisateurDto.getIdentifiant());
+
         utilisateur.setRole(utilisateurDto.getRole());
         // Crypter le mot de passe avant de le sauvegarder
         String hashedPassword = BCrypt.hashpw(utilisateurDto.getMotDePasse(), BCrypt.gensalt());

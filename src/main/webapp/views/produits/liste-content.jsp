@@ -4,7 +4,7 @@
 <%@ page import="com.enokdev.boutique.utils.StringUtils" %>
 
 <!-- Bootstrap CSS et JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link href="<c:url value='/resources/js/bootstrap.bundle.min.js'/>" rel="stylesheet">
 
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
