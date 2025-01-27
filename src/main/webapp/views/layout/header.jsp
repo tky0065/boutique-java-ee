@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-boostrap icon
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -42,7 +42,7 @@ boostrap icon
                             </a>
                         </c:forEach>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item text-center text-primary" href="<c:url value='/alertes/alertes'/>">Voir toutes les alertes</a>
+                        <a class="dropdown-item text-center text-primary" href="<c:url value='/alertes'/>">Voir toutes les alertes</a>
                     </div>
                 </div>
             </c:if>
@@ -73,8 +73,8 @@ boostrap icon
 
                 <div class="dropdown-menu dropdown-menu-end shadow-sm">
                     <c:if test="${not empty sessionScope.utilisateur}">
-                        <a class="dropdown-item" href="<c:url value='/'/>"><i class="bi bi-person me-2"></i> Mon profil</a>
-                        <a class="dropdown-item" href="<c:url value='/'/>"><i class="bi bi-gear me-2"></i> Paramètres</a>
+                        <a class="dropdown-item" href="<c:url value='/profile'/>"><i class="bi bi-person me-2"></i> Mon profil</a>
+<%--                        <a class="dropdown-item" href="<c:url value='/'/>"><i class="bi bi-gear me-2"></i> Paramètres</a>--%>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item text-danger" href="<c:url value='/auth/logout'/>"><i class="bi bi-box-arrow-right me-2"></i> Déconnexion</a>
                     </c:if>

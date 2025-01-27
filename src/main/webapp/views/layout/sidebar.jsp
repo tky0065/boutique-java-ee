@@ -39,8 +39,6 @@
 
     .nav {
         list-style: none;
-        padding: 0;
-        margin: 0;
     }
 
     .nav-item {
@@ -69,12 +67,15 @@
         font-weight: bold;
     }
 
-    .sidebar-divider {
-        border: 0;
-        height: 2px;
-        background: #495057;
-        margin:0;
-    }
+    /*.sidebar-divider {*/
+    /*    border: 0;*/
+    /*    height: 1px;*/
+    /*    align-items: center;*/
+    /*    justify-content: center;*/
+    /*    width: 50%;*/
+    /*    background: #495057;*/
+    /*    margin: 0;*/
+    /*}*/
 
     /* Section spécifique pour "Mon Profil" et "Paramètres" */
     .sidebar-footer {
@@ -99,96 +100,101 @@
     }
 </style>
 
-<div class="sidebar">
+<div class="sidebar mb-3">
     <div class="sidebar-header">
-        <a href="<c:url value='/dashboard'/>" class="sidebar-brand">
+        <a href="<c:url value='/dashboard'/>" class="sidebar-brand fs-5">
             <i class="bi bi-shop"></i> Gestion Boutique
         </a>
     </div>
 
     <div class="sidebar-nav">
-        <ul class="nav flex-column mb-0">
+        <ul class="nav flex-column mb-0 g-0">
             <%-- Menu accessible à tous --%>
             <li class="nav-item">
-                <a href="<c:url value='/dashboard'/>" class="nav-link ${pageContext.request.requestURI.contains('/dashboard') ? 'active' : ''}">
+                <a href="<c:url value='/dashboard'/>"
+                   class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/dashboard') ? 'active' : ''}">
                     <i class="bi bi-speedometer2"></i> Tableau de bord
                 </a>
             </li>
-                <%-- Menu Ventes (VENDEUR, ADMIN) --%>
-<c:if test="${sessionScope.userRole == 'VENDEUR' || sessionScope.userRole == 'ADMIN'}">
+            <%-- Menu Ventes (VENDEUR, ADMIN) --%>
+            <c:if test="${sessionScope.userRole == 'VENDEUR' || sessionScope.userRole == 'ADMIN'}">
+                <li class="nav-item">
+                    <a href="<c:url value='/ventes'/>"
+                       class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/ventes') ? 'active' : ''}">
+                        <i class="bi bi-cart"></i> Ventes
+                    </a>
+                </li>
+            </c:if>
+            <%-- Menu Produits (GESTIONNAIRE_STOCK, ADMIN) --%>
+            <c:if test="${sessionScope.userRole == 'GESTIONNAIRE_STOCK' || sessionScope.userRole == 'ADMIN'}">
+                <li class="nav-item">
+                    <a href="<c:url value='/produits/liste'/>"
+                       class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/produits') ? 'active' : ''}">
+                        <i class="bi bi-box"></i> Produits
+                    </a>
+                </li>
+            </c:if>
+            <%-- Menu Livraisons (GESTIONNAIRE_STOCK, ADMIN) --%>
+            <c:if test="${sessionScope.userRole == 'GESTIONNAIRE_STOCK' || sessionScope.userRole == 'ADMIN'}">
+                <li class="nav-item">
+                    <a href="<c:url value='/livraisons'/>"
+                       class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/livraisons') ? 'active' : ''}">
+                        <i class="bi bi-truck"></i> Livraisons
+                    </a>
+                </li>
+            </c:if>
+            <%-- Menu Historique (tous) --%>
             <li class="nav-item">
-                <a href="<c:url value='/ventes'/>" class="nav-link ${pageContext.request.requestURI.contains('/ventes') ? 'active' : ''}">
-                    <i class="bi bi-cart"></i> Ventes
-                </a>
-            </li>
-</c:if>
-                <%-- Menu Produits (GESTIONNAIRE_STOCK, ADMIN) --%>
-<c:if test="${sessionScope.userRole == 'GESTIONNAIRE_STOCK' || sessionScope.userRole == 'ADMIN'}">
-            <li class="nav-item">
-                <a href="<c:url value='/produits/liste'/>" class="nav-link ${pageContext.request.requestURI.contains('/produits') ? 'active' : ''}">
-                    <i class="bi bi-box"></i> Produits
-                </a>
-            </li>
-</c:if>
-                <%-- Menu Livraisons (GESTIONNAIRE_STOCK, ADMIN) --%>
-<c:if test="${sessionScope.userRole == 'GESTIONNAIRE_STOCK' || sessionScope.userRole == 'ADMIN'}">
-            <li class="nav-item">
-                <a href="<c:url value='/livraisons'/>" class="nav-link ${pageContext.request.requestURI.contains('/livraisons') ? 'active' : ''}">
-                    <i class="bi bi-truck"></i> Livraisons
-                </a>
-            </li>
-</c:if>
-                <%-- Menu Historique (tous) --%>
-            <li class="nav-item">
-                <a href="<c:url value='/historique'/>" class="nav-link ${pageContext.request.requestURI.contains('/historique') ? 'active' : ''}">
+                <a href="<c:url value='/historique'/>"
+                   class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/historique') ? 'active' : ''}">
                     <i class="bi bi-clock-history"></i> Historique
                 </a>
             </li>
-                <%-- Menu Rapports (ADMIN) --%>
-<c:if test="${sessionScope.userRole == 'ADMIN'}">
-            <li class="nav-item">
-                <a href="<c:url value='/rapports'/>" class="nav-link ${pageContext.request.requestURI.contains('/rapports') ? 'active' : ''}">
-                    <i class="bi bi-file-earmark-text"></i> Rapports
-                </a>
-            </li>
-</c:if>
-                <%-- Menu Livraisons (GESTIONNAIRE_STOCK, ADMIN) --%>
-<c:if test="${sessionScope.userRole == 'GESTIONNAIRE_STOCK' || sessionScope.userRole == 'ADMIN'}">
-            <li class="nav-item">
-                <a href="<c:url value='/alertes'/>" class="nav-link ${pageContext.request.requestURI.contains('/alertes') ? 'active' : ''}">
-                    <i class="bi bi-exclamation-triangle"></i> Alertes
-                </a>
-            </li>
-</c:if>
-                <%-- Menu Utilisateurs (ADMIN) --%>
-<c:if test="${sessionScope.userRole == 'ADMIN'}">
-            <li class="nav-item">
-                <a href="<c:url value='/utilisateurs'/>" class="nav-link ${pageContext.request.requestURI.contains('/utilisateurs') ? 'active' : ''}">
-                    <i class="bi bi-person"></i> Utilisateurs
-                </a>
-            </li>
-</c:if>
+            <%-- Menu Rapports (ADMIN) --%>
+            <c:if test="${sessionScope.userRole == 'ADMIN'}">
+                <li class="nav-item">
+                    <a href="<c:url value='/rapports'/>"
+                       class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/rapports') ? 'active' : ''}">
+                        <i class="bi bi-file-earmark-text"></i> Rapports
+                    </a>
+                </li>
+            </c:if>
+            <%-- Menu Livraisons (GESTIONNAIRE_STOCK, ADMIN) --%>
+            <c:if test="${sessionScope.userRole == 'GESTIONNAIRE_STOCK' || sessionScope.userRole == 'ADMIN'}">
+                <li class="nav-item">
+                    <a href="<c:url value='/alertes'/>"
+                       class="nav-link py-2 px-2 ${pageContext.request.requestURI.contains('/alertes') ? 'active' : ''}">
+                        <i class="bi bi-exclamation-triangle"></i> Alertes
+                    </a>
+                </li>
+            </c:if>
+            <%-- Menu Utilisateurs (ADMIN) --%>
+            <c:if test="${sessionScope.userRole == 'ADMIN'}">
+                <li class="nav-item">
+                    <a href="<c:url value='/utilisateurs'/>"
+                       class="nav-link py-2 px-2  ${pageContext.request.requestURI.contains('/utilisateurs') ? 'active' : ''}">
+                        <i class="bi bi-person"></i> Utilisateurs
+                    </a>
+                </li>
+                <div class="border-1 border-bottom border-secondary align-items-center mx-3 "></div>
+
+                <li class="nav-item">
+                    <a href="<c:url value='/profile'/>"
+                       class=" nav-link py-1 px-2  ${pageContext.request.requestURI.contains('/profile') ? 'active' : ''}">
+                        <i class="bi bi-person-circle"></i> Mon Profil
+                    </a>
+                </li>
+                <%-- Profil et Déconnexion (tous) --%>
+                <li class="nav-item mb-5">
+                    <a href="<c:url value='/auth/logout'/>"
+                       class=" nav-link  py-1 px-2 text-danger text-center ">
+                        <i class="bi bi-box-arrow-right text-danger text-center  "></i> Déconnexion
+                    </a>
+                </li>
+            </c:if>
         </ul>
 
-        <hr class="sidebar-divider">
     </div>
 
-    <!-- Footer pour Mon Profil et Paramètres -->
-    <%-- Profil et Déconnexion (tous) --%>
-    <div class="sidebar-footer">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a href="<c:url value='/profile'/>" class="nav-footer-link nav-link ${pageContext.request.requestURI.contains('/profile') ? 'active' : ''}">
-                    <i class="bi bi-person-circle"></i> Mon Profil
-                </a>
-            </li>
-            <%-- Profil et Déconnexion (tous) --%>
-            <li class="nav-item">
-                <a href="<c:url value='/auth/logout'/>" class="nav-footer-link nav-link  text-danger text-center   mb-5">
-                    <i class="bi bi-box-arrow-right text-danger text-center  "></i> Déconnexion
-                </a>
-            </li>
 
-        </ul>
-    </div>
 </div>

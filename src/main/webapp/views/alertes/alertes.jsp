@@ -74,7 +74,8 @@
                                 </c:choose>
                             </td>
                             <td>
-                                <a href="<c:url value='/livraisons/nouvelle?produit=${alerte.produitId}'/>"
+                                <a href="<c:url value='/produits/editer/${alerte.produitId}'/>"
+
                                    class="btn btn-sm btn-success">
                                     <i class="bi bi-plus-circle"></i> Commander
                                 </a>
