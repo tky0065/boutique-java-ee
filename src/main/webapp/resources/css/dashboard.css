@@ -45,7 +45,7 @@ body {
 /* Sidebar Amélioré */
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--primary-color);
+    background-color: #343a40;
     position: fixed;
     height: 100vh;
     left: 0;
@@ -103,7 +103,7 @@ body {
 }
 
 .nav-link:hover, .nav-link.active {
-    color: white;
+    color: #ffc107;
     background: rgba(255,255,255,.1);
     transform: translateX(4px);
 }
